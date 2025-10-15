@@ -375,6 +375,77 @@ body {
     border-color: var(--valheim-bronze);
 }
 
+/* Стили для выбора действий */
+.action-selector {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--valheim-border);
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.action-item {
+    background: rgba(139, 115, 85, 0.2);
+    border: 1px solid var(--valheim-border);
+    padding: 6px;
+    margin-bottom: 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.2s ease;
+}
+
+.action-item:hover {
+    background: rgba(139, 115, 85, 0.4);
+    border-color: var(--valheim-bronze);
+}
+
+/* Стили для палитры цветов */
+.color-picker-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.color-preview {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--valheim-border);
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.color-palette {
+    position: absolute;
+    top: 35px;
+    left: 0;
+    background: rgba(26, 47, 26, 0.95);
+    border: 1px solid var(--valheim-bronze);
+    border-radius: 3px;
+    padding: 8px;
+    display: none;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.color-swatch {
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--valheim-border);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.color-swatch:hover {
+    transform: scale(1.2);
+    border-color: var(--valheim-gold);
+}
+
 .condition-item,
 .command-item {
     background: rgba(139, 115, 85, 0.2);
@@ -409,6 +480,236 @@ body {
     marker-end: url(#arrowhead);
 }
 
+/* Preview Modal - Новый стиль */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.valheim-dialog {
+    background: linear-gradient(135deg, #2c5530 0%, #1a2f1a 100%);
+    border: 3px solid var(--valheim-bronze);
+    border-radius: 8px;
+    width: 500px;
+    max-width: 90vw;
+    color: var(--valheim-text);
+    font-family: 'Cinzel', serif;
+    box-shadow: 0 0 40px rgba(139, 115, 85, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.valheim-dialog::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--valheim-gold), transparent);
+}
+
+.dialog-header {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--valheim-bronze);
+}
+
+.npc-name {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: var(--valheim-gold);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--valheim-text);
+    font-size: 1.5em;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dialog-content {
+    padding: 0;
+}
+
+.npc-text {
+    font-size: 1.1em;
+    line-height: 1.5;
+    padding: 25px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--valheim-border);
+    margin: 0;
+}
+
+.player-options {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.option-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--valheim-border);
+    color: var(--valheim-text);
+    padding: 18px 25px;
+    text-align: right;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Cinzel', serif;
+    font-size: 1em;
+    position: relative;
+    width: 100%;
+}
+
+.option-btn:last-child {
+    border-bottom: none;
+}
+
+.option-btn:hover {
+    background: rgba(139, 115, 85, 0.2);
+    color: var(--valheim-gold);
+}
+
+.option-btn::after {
+    content: "›";
+    position: absolute;
+    right: 20px;
+    color: var(--valheim-bronze);
+    font-size: 1.2em;
+}
+
+.option-btn:hover::after {
+    color: var(--valheim-gold);
+    transform: translateX(3px);
+}
+
+.back-btn {
+    background: rgba(139, 115, 85, 0.3);
+    border: 1px solid var(--valheim-bronze);
+    color: var(--valheim-text);
+    padding: 12px 25px;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9em;
+    text-align: center;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.back-btn:hover {
+    background: rgba(139, 115, 85, 0.5);
+    color: var(--valheim-gold);
+}
+
+/* Модальные окна для выбора действий */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.action-modal {
+    background: linear-gradient(135deg, var(--valheim-medium) 0%, var(--valheim-dark) 100%);
+    border: 2px solid var(--valheim-bronze);
+    border-radius: 5px;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--valheim-bronze);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    color: var(--valheim-gold);
+    font-family: 'Cinzel', serif;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--valheim-text);
+    font-size: 1.3em;
+    cursor: pointer;
+}
+
+.modal-content {
+    padding: 15px;
+}
+
+.action-category {
+    margin-bottom: 15px;
+}
+
+.action-category h4 {
+    color: var(--valheim-gold);
+    margin-bottom: 8px;
+    font-family: 'Cinzel', serif;
+    border-bottom: 1px solid var(--valheim-border);
+    padding-bottom: 4px;
+}
+
+.action-button {
+    width: 100%;
+    background: rgba(139, 115, 85, 0.2);
+    border: 1px solid var(--valheim-border);
+    color: var(--valheim-text);
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.85em;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover {
+    background: rgba(139, 115, 85, 0.4);
+    border-color: var(--valheim-bronze);
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     .sidebar {
@@ -433,5 +734,17 @@ body {
     .controls {
         width: 100%;
         justify-content: center;
+    }
+    
+    .valheim-dialog {
+        width: 95vw;
+    }
+    
+    .npc-text {
+        padding: 20px 15px;
+    }
+    
+    .option-btn {
+        padding: 15px 20px;
     }
 }
