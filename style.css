@@ -1,3 +1,14 @@
+/* style.css - Valheim Style */
+:root {
+    --valheim-dark: #1a2f1a;
+    --valheim-medium: #2c5530;
+    --valheim-light: #4a7c59;
+    --valheim-gold: #d4af37;
+    --valheim-bronze: #8b7355;
+    --valheim-text: #e0e0e0;
+    --valheim-border: #4a4a4a;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,10 +17,13 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1a2f1a 0%, #0d1a0d 100%);
-    color: #e0e0e0;
+    background: linear-gradient(135deg, var(--valheim-dark) 0%, #0d1a0d 100%);
+    color: var(--valheim-text);
     height: 100vh;
     overflow: hidden;
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(42, 67, 42, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(74, 124, 89, 0.2) 0%, transparent 50%);
 }
 
 .app {
@@ -18,94 +32,153 @@ body {
     height: 100vh;
 }
 
-/* Header */
+/* Header - Viking Style */
 .header {
-    background: linear-gradient(135deg, #2c5530 0%, #1a2f1a 100%);
-    border-bottom: 2px solid #8b7355;
-    padding: 15px 20px;
+    background: linear-gradient(135deg, var(--valheim-medium) 0%, var(--valheim-dark) 100%);
+    border-bottom: 2px solid var(--valheim-bronze);
+    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--valheim-gold), transparent);
 }
 
 .header h1 {
     font-family: 'Cinzel', serif;
-    color: #d4af37;
-    font-size: 1.5em;
+    color: var(--valheim-gold);
+    font-size: 1.6em;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.5px;
 }
 
 .controls {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
 }
 
 .controls button {
     background: rgba(139, 115, 85, 0.3);
-    border: 1px solid #8b7355;
-    color: #e0e0e0;
-    padding: 8px 15px;
-    border-radius: 4px;
+    border: 1px solid var(--valheim-bronze);
+    color: var(--valheim-text);
+    padding: 6px 12px;
+    border-radius: 3px;
     cursor: pointer;
     font-family: inherit;
-    transition: all 0.2s;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .controls button:hover {
     background: rgba(139, 115, 85, 0.5);
+    border-color: var(--valheim-gold);
+    transform: translateY(-1px);
+}
+
+.controls button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.controls button:hover::before {
+    left: 100%;
 }
 
 .preview-btn {
-    background: #4a7c59 !important;
+    background: var(--valheim-light) !important;
     border-color: #6b8c42 !important;
     font-weight: bold;
 }
 
 #searchInput {
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid #4a4a4a;
-    color: #e0e0e0;
-    padding: 8px 12px;
-    border-radius: 4px;
-    width: 200px;
+    border: 1px solid var(--valheim-border);
+    color: var(--valheim-text);
+    padding: 6px 10px;
+    border-radius: 3px;
+    width: 180px;
+    font-size: 0.9em;
 }
 
-/* Main Content */
+#searchInput:focus {
+    outline: none;
+    border-color: var(--valheim-bronze);
+    box-shadow: 0 0 5px rgba(139, 115, 85, 0.3);
+}
+
+/* Main Content Layout */
 .main-content {
     display: flex;
     flex: 1;
     overflow: hidden;
 }
 
-/* Sidebar */
+/* Sidebar - Wooden Panel Style */
 .sidebar {
-    width: 250px;
-    background: rgba(0, 0, 0, 0.2);
-    border-right: 1px solid #4a4a4a;
-    padding: 20px;
+    width: 240px;
+    background: rgba(26, 47, 26, 0.7);
+    border-right: 1px solid var(--valheim-border);
+    padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    backdrop-filter: blur(5px);
+    position: relative;
+}
+
+.sidebar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--valheim-bronze), transparent);
 }
 
 .node-palette h3, .validation-panel h3 {
-    color: #d4af37;
-    margin-bottom: 15px;
+    color: var(--valheim-gold);
+    margin-bottom: 12px;
     font-family: 'Cinzel', serif;
+    font-size: 1.1em;
+    border-bottom: 1px solid var(--valheim-border);
+    padding-bottom: 5px;
 }
 
 .palette-item {
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid #8b7355;
+    background: rgba(139, 115, 85, 0.15);
+    border: 1px solid var(--valheim-bronze);
     padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 4px;
+    margin-bottom: 8px;
+    border-radius: 3px;
     cursor: grab;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
 }
 
 .palette-item:hover {
-    background: rgba(139, 115, 85, 0.4);
+    background: rgba(139, 115, 85, 0.3);
+    transform: translateX(2px);
 }
 
 .validation-panel {
@@ -114,64 +187,68 @@ body {
 
 #validationErrors {
     color: #ff6b6b;
-    font-size: 0.9em;
+    font-size: 0.85em;
+    line-height: 1.4;
 }
 
-/* Canvas */
+/* Canvas - Parchment-like Background */
 .canvas-container {
     flex: 1;
     position: relative;
     overflow: auto;
     background: 
+        linear-gradient(rgba(139, 115, 85, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 115, 85, 0.1) 1px, transparent 1px),
         radial-gradient(circle at 20% 20%, #1a2f1a 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, #2c5530 0%, transparent 50%);
+    background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+    background-color: #1a2f1a;
 }
 
 .canvas {
     position: relative;
     width: 2000px;
     height: 2000px;
-    background-image: 
-        linear-gradient(rgba(139, 115, 85, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(139, 115, 85, 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
 }
 
-/* Dialog Node */
+/* Dialog Nodes - Carved Wood Style */
 .dialog-node {
     position: absolute;
     width: 300px;
-    background: linear-gradient(135deg, #2c5530 0%, #1a2f1a 100%);
-    border: 2px solid #8b7355;
-    border-radius: 8px;
-    padding: 15px;
+    background: linear-gradient(135deg, var(--valheim-medium) 0%, var(--valheim-dark) 100%);
+    border: 2px solid var(--valheim-bronze);
+    border-radius: 5px;
+    padding: 12px;
     cursor: move;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
 }
 
 .dialog-node.selected {
-    border-color: #d4af37;
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    border-color: var(--valheim-gold);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    transform: scale(1.02);
 }
 
 .dialog-node.highlighted {
-    border-color: #4a7c59;
-    box-shadow: 0 0 15px rgba(74, 124, 89, 0.5);
+    border-color: var(--valheim-light);
+    box-shadow: 0 0 12px rgba(74, 124, 89, 0.6);
 }
 
 .node-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #8b7355;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--valheim-bronze);
 }
 
 .node-id {
     font-weight: bold;
-    color: #d4af37;
+    color: var(--valheim-gold);
     font-family: 'Cinzel', serif;
+    font-size: 1em;
 }
 
 .node-delete {
@@ -179,96 +256,136 @@ body {
     border: none;
     color: #ff6b6b;
     cursor: pointer;
-    font-size: 1.2em;
+    font-size: 1.1em;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.node-delete:hover {
+    background: rgba(255, 107, 107, 0.1);
 }
 
 .npc-text-area {
     width: 100%;
-    min-height: 60px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid #4a4a4a;
-    color: #e0e0e0;
-    padding: 8px;
-    border-radius: 4px;
+    min-height: 55px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--valheim-border);
+    color: var(--valheim-text);
+    padding: 6px;
+    border-radius: 3px;
     resize: vertical;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-family: inherit;
+    font-size: 0.9em;
+}
+
+.npc-text-area:focus {
+    outline: none;
+    border-color: var(--valheim-bronze);
 }
 
 .options-list {
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .option-item {
     background: rgba(139, 115, 85, 0.2);
-    border: 1px solid #4a4a4a;
-    padding: 8px;
-    margin-bottom: 5px;
-    border-radius: 4px;
+    border: 1px solid var(--valheim-border);
+    padding: 6px;
+    margin-bottom: 4px;
+    border-radius: 3px;
     cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s ease;
 }
 
 .option-item:hover {
-    background: rgba(139, 115, 85, 0.4);
+    background: rgba(139, 115, 85, 0.35);
+    border-color: var(--valheim-bronze);
 }
 
 .add-option {
     width: 100%;
-    background: rgba(74, 124, 89, 0.3);
-    border: 1px dashed #4a7c59;
-    color: #e0e0e0;
-    padding: 8px;
-    border-radius: 4px;
+    background: rgba(74, 124, 89, 0.25);
+    border: 1px dashed var(--valheim-light);
+    color: var(--valheim-text);
+    padding: 6px;
+    border-radius: 3px;
     cursor: pointer;
     text-align: center;
+    font-size: 0.85em;
+    transition: all 0.2s ease;
+}
+
+.add-option:hover {
+    background: rgba(74, 124, 89, 0.4);
+    border-style: solid;
 }
 
 /* Properties Panel */
 .properties-panel {
-    width: 300px;
-    background: rgba(0, 0, 0, 0.2);
-    border-left: 1px solid #4a4a4a;
-    padding: 20px;
+    width: 280px;
+    background: rgba(26, 47, 26, 0.7);
+    border-left: 1px solid var(--valheim-border);
+    padding: 15px;
+    backdrop-filter: blur(5px);
 }
 
 .properties-panel h3 {
-    color: #d4af37;
-    margin-bottom: 15px;
+    color: var(--valheim-gold);
+    margin-bottom: 12px;
     font-family: 'Cinzel', serif;
+    font-size: 1.1em;
+    border-bottom: 1px solid var(--valheim-border);
+    padding-bottom: 5px;
 }
 
 .property-group {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .property-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     color: #b8b8b8;
+    font-size: 0.85em;
 }
 
 .property-group input,
 .property-group select,
 .property-group textarea {
     width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid #4a4a4a;
-    color: #e0e0e0;
-    padding: 8px;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--valheim-border);
+    color: var(--valheim-text);
+    padding: 6px;
+    border-radius: 3px;
     font-family: inherit;
+    font-size: 0.85em;
+}
+
+.property-group input:focus,
+.property-group select:focus,
+.property-group textarea:focus {
+    outline: none;
+    border-color: var(--valheim-bronze);
 }
 
 .condition-item,
 .command-item {
     background: rgba(139, 115, 85, 0.2);
-    border: 1px solid #4a4a4a;
-    padding: 8px;
-    margin-bottom: 5px;
-    border-radius: 4px;
+    border: 1px solid var(--valheim-border);
+    padding: 6px;
+    margin-bottom: 4px;
+    border-radius: 3px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 0.8em;
 }
 
 .remove-btn {
@@ -276,104 +393,7 @@ body {
     border: none;
     color: #ff6b6b;
     cursor: pointer;
-}
-
-/* Preview Modal */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.valheim-dialog {
-    background: linear-gradient(135deg, #2c5530 0%, #1a2f1a 100%);
-    border: 2px solid #8b7355;
-    border-radius: 8px;
-    width: 600px;
-    max-width: 90vw;
-    color: #e0e0e0;
-    font-family: 'Cinzel', serif;
-    box-shadow: 0 0 30px rgba(139, 115, 85, 0.3);
-}
-
-.dialog-header {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 15px 20px;
-    border-bottom: 1px solid #8b7355;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.npc-name {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #d4af37;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: #e0e0e0;
-    font-size: 1.5em;
-    cursor: pointer;
-}
-
-.dialog-content {
-    padding: 20px;
-}
-
-.npc-text {
-    font-size: 1.1em;
-    line-height: 1.4;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    border-left: 3px solid #d4af37;
-}
-
-.player-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.option-btn {
-    background: rgba(139, 115, 85, 0.1);
-    border: 1px solid #4a4a4a;
-    border-radius: 4px;
-    padding: 12px 15px;
-    color: #e0e0e0;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: inherit;
-}
-
-.option-btn:hover {
-    background: rgba(139, 115, 85, 0.3);
-    border-color: #8b7355;
-}
-
-.back-btn {
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid #8b7355;
-    color: #e0e0e0;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 10px 20px 20px;
+    font-size: 1em;
 }
 
 /* Connection Lines */
@@ -384,7 +404,34 @@ body {
 }
 
 .connection line {
-    stroke: #8b7355;
+    stroke: var(--valheim-bronze);
     stroke-width: 2;
     marker-end: url(#arrowhead);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 200px;
+    }
+    
+    .properties-panel {
+        width: 250px;
+    }
+    
+    .dialog-node {
+        width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .controls {
+        width: 100%;
+        justify-content: center;
+    }
 }
