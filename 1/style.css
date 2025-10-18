@@ -73,15 +73,6 @@ button:hover {
     background: #229954;
 }
 
-.quest-btn {
-    background: #e67e22;
-    font-size: 14px;
-}
-
-.quest-btn:hover {
-    background: #d35400;
-}
-
 .btn-small {
     padding: 4px 8px;
     font-size: 12px;
@@ -464,10 +455,15 @@ textarea.form-control {
     max-width: 95%;
 }
 
-.quest-modal {
+.quests-modal {
     width: 900px;
     max-width: 95%;
     height: 80vh;
+}
+
+.quest-preview-modal {
+    width: 700px;
+    max-width: 95%;
 }
 
 .modal-header {
@@ -502,84 +498,87 @@ textarea.form-control {
     padding: 20px;
 }
 
-/* Редактор квестов */
-.quest-editor {
+/* Контейнер для редактора квестов */
+.quests-container {
     display: flex;
-    height: calc(80vh - 80px);
+    height: calc(80vh - 60px);
 }
 
-.quest-list-panel {
-    width: 300px;
+.quests-sidebar {
+    width: 250px;
     background: #2c3e50;
-    border-right: 2px solid #3498db;
-    padding: 20px;
+    border-right: 1px solid #7f8c8d;
     display: flex;
     flex-direction: column;
 }
 
-.quest-list-panel h3 {
-    color: #f39c12;
-    margin-bottom: 15px;
-    text-align: center;
+.quests-header {
+    padding: 15px;
+    border-bottom: 1px solid #7f8c8d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.quest-list {
+.quests-header h3 {
+    color: #3498db;
+    margin: 0;
+}
+
+.quests-list {
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 15px;
+    padding: 10px;
 }
 
 .quest-item {
     background: #34495e;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border-left: 4px solid #e67e22;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
+    border-left: 3px solid #3498db;
 }
 
 .quest-item:hover {
     background: #3a506b;
-    transform: translateX(5px);
 }
 
 .quest-item.selected {
+    border-left-color: #f39c12;
     background: #3a506b;
-    border-left-color: #f1c40f;
 }
 
 .quest-item-name {
     font-weight: bold;
-    color: #f1c40f;
     margin-bottom: 5px;
 }
 
 .quest-item-id {
     font-size: 12px;
     color: #bdc3c7;
-    font-family: monospace;
 }
 
-.quest-details-panel {
+.quest-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.quest-editor-content {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background: #2c3e50;
-}
-
-.quest-details h3 {
-    color: #f39c12;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #7f8c8d;
-    padding-bottom: 10px;
 }
 
 .no-quest-selected {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
     color: #7f8c8d;
     font-style: italic;
-    margin-top: 50px;
 }
 
 .quest-form {
@@ -589,9 +588,9 @@ textarea.form-control {
 }
 
 .quest-form-section {
-    background: #34495e;
+    background: #2c3e50;
     padding: 15px;
-    border-radius: 6px;
+    border-radius: 4px;
     border: 1px solid #7f8c8d;
 }
 
@@ -607,7 +606,7 @@ textarea.form-control {
 }
 
 .quest-target-item, .quest-reward-item, .quest-requirement-item {
-    background: #2c3e50;
+    background: #34495e;
     padding: 8px;
     margin: 5px 0;
     border-radius: 4px;
@@ -625,148 +624,35 @@ textarea.form-control {
 }
 
 .quest-requirement-item {
-    border-left: 3px solid #3498db;
+    border-left: 3px solid #f39c12;
 }
 
-.quest-item-buttons {
-    display: flex;
-    gap: 5px;
+.quest-target-item span, .quest-reward-item span, .quest-requirement-item span {
+    flex: 1;
+    font-size: 12px;
+}
+
+.quest-target-item button, .quest-reward-item button, .quest-requirement-item button {
+    padding: 2px 6px;
+    font-size: 10px;
+    background: #e74c3c;
+}
+
+.quest-reward-item button {
+    background: #c0392b;
+}
+
+.quest-requirement-item button {
+    background: #d35400;
 }
 
 .quest-preview-btn {
-    background: #e67e22;
+    background: #f39c12;
     margin-top: 10px;
 }
 
 .quest-preview-btn:hover {
-    background: #d35400;
-}
-
-/* Предпросмотр квестов */
-.quest-preview {
-    background: #1a1a1a;
-    border: 3px solid #8b7355;
-    border-radius: 10px;
-    padding: 20px;
-    color: #e8d8a3;
-    font-family: 'MedievalSharp', cursive;
-    text-shadow: 1px 1px 2px #000;
-    height: 100%;
-    overflow-y: auto;
-}
-
-.quest-preview-header {
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: #f1c40f;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 10px;
-    border-bottom: 2px solid #8b7355;
-}
-
-.quest-preview-content {
-    display: flex;
-    gap: 20px;
-}
-
-.quest-preview-left {
-    flex: 1;
-}
-
-.quest-preview-right {
-    flex: 1;
-}
-
-.quest-preview-section {
-    margin-bottom: 20px;
-}
-
-.quest-preview-description {
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid #8b7355;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 15px;
-    line-height: 1.5;
-    white-space: pre-line;
-}
-
-.quest-preview-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-    border: 1px solid #8b7355;
-    margin: 10px 0;
-}
-
-.quest-preview-separator {
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #8b7355, transparent);
-    margin: 15px 0;
-}
-
-.quest-preview-subheader {
-    color: #f39c12;
-    font-weight: bold;
-    margin-bottom: 10px;
-    font-size: 16px;
-}
-
-.quest-preview-objectives, .quest-preview-rewards {
-    background: rgba(139, 115, 85, 0.1);
-    border: 1px solid #8b7355;
-    border-radius: 5px;
-    padding: 12px;
-}
-
-.quest-objective, .quest-reward {
-    display: flex;
-    align-items: center;
-    padding: 8px 5px;
-    border-bottom: 1px solid rgba(139, 115, 85, 0.3);
-}
-
-.quest-objective:last-child, .quest-reward:last-child {
-    border-bottom: none;
-}
-
-.quest-objective-icon, .quest-reward-icon {
-    width: 20px;
-    height: 20px;
-    background: #f1c40f;
-    border-radius: 3px;
-    margin-right: 10px;
-    flex-shrink: 0;
-}
-
-.quest-objective-text, .quest-reward-text {
-    flex: 1;
-    font-size: 14px;
-}
-
-.quest-accept-button {
-    display: block;
-    width: 200px;
-    margin: 20px auto 0;
-    padding: 12px;
-    background: #7f8c8d;
-    border: 2px solid #8b7355;
-    border-radius: 5px;
-    color: #f1c40f;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'MedievalSharp', cursive;
-    text-transform: uppercase;
-}
-
-.quest-accept-button:hover {
-    background: #95a5a6;
-    transform: translateY(-2px);
+    background: #e67e22;
 }
 
 /* Предпросмотр в стиле Valheim */
@@ -857,14 +743,159 @@ textarea.form-control {
     opacity: 0.8;
 }
 
+/* Предпросмотр квеста */
+.quest-preview-content {
+    background: #1a1a1a;
+    border: 3px solid #8b7355;
+    border-radius: 10px;
+    padding: 0;
+    color: #e8d8a3;
+    font-family: 'MedievalSharp', cursive;
+    text-shadow: 1px 1px 2px #000;
+    font-size: 14px;
+    line-height: 1.4;
+    display: flex;
+    height: 500px;
+}
+
+.quest-preview-sidebar {
+    width: 200px;
+    background: rgba(139, 115, 85, 0.2);
+    border-right: 1px solid #8b7355;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.quest-preview-sidebar h3 {
+    color: #f1c40f;
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #8b7355;
+}
+
+.quest-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quest-preview-list-item {
+    padding: 10px;
+    background: rgba(139, 115, 85, 0.3);
+    border: 1px solid #8b7355;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.quest-preview-list-item:hover {
+    background: rgba(139, 115, 85, 0.5);
+}
+
+.quest-preview-list-item.selected {
+    background: rgba(241, 196, 15, 0.3);
+    border-color: #f1c40f;
+}
+
+.quest-preview-details {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.quest-preview-title {
+    color: #f1c40f;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #8b7355;
+}
+
+.quest-preview-description {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(139, 115, 85, 0.2);
+    border-radius: 5px;
+    border: 1px solid #8b7355;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.quest-preview-image {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.quest-preview-image img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 5px;
+    border: 1px solid #8b7355;
+}
+
+.quest-preview-separator {
+    height: 1px;
+    background: #8b7355;
+    margin: 15px 0;
+}
+
+.quest-preview-section {
+    margin-bottom: 15px;
+}
+
+.quest-preview-section h4 {
+    color: #f39c12;
+    margin-bottom: 8px;
+}
+
+.quest-preview-objectives, .quest-preview-rewards {
+    padding: 10px;
+    background: rgba(139, 115, 85, 0.2);
+    border-radius: 4px;
+    border: 1px solid #8b7355;
+}
+
+.quest-preview-objective, .quest-preview-reward {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.5);
+}
+
+.quest-preview-objective:last-child, .quest-preview-reward:last-child {
+    border-bottom: none;
+}
+
+.quest-preview-accept-btn {
+    background: #7f8c8d;
+    color: #f1c40f;
+    border: 1px solid #8b7355;
+    padding: 12px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: auto;
+    text-align: center;
+}
+
+.quest-preview-accept-btn:hover {
+    background: #95a5a6;
+    transform: translateY(-2px);
+}
+
 /* Адаптивность */
 @media (max-width: 1200px) {
     .properties-panel {
         width: 300px;
-    }
-    
-    .quest-modal {
-        width: 95%;
     }
 }
 
@@ -885,23 +916,32 @@ textarea.form-control {
         margin: 2% auto;
     }
     
-    .preview-modal {
+    .preview-modal, .quests-modal, .quest-preview-modal {
         width: 95%;
     }
     
-    .quest-editor {
+    .quests-container {
         flex-direction: column;
         height: auto;
     }
     
-    .quest-list-panel {
+    .quests-sidebar {
         width: 100%;
+        height: 200px;
         border-right: none;
-        border-bottom: 2px solid #3498db;
+        border-bottom: 1px solid #7f8c8d;
     }
     
     .quest-preview-content {
         flex-direction: column;
+        height: auto;
+    }
+    
+    .quest-preview-sidebar {
+        width: 100%;
+        height: 150px;
+        border-right: none;
+        border-bottom: 1px solid #8b7355;
     }
 }
 
