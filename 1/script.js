@@ -35,6 +35,11 @@ class DialogueEditor {
         this.bindButton('addNodeOptionBtn', () => this.addOptionToSelectedNode());
         this.bindButton('addQuestBtn', () => this.addQuest());
         
+        // Квесты
+        this.bindButton('saveQuestTargetBtn', () => this.saveQuestTarget());
+        this.bindButton('saveQuestRewardBtn', () => this.saveQuestReward());
+        this.bindButton('saveQuestRequirementBtn', () => this.saveQuestRequirement());
+        
         // Поиск
         this.bindInput('searchInput', (e) => this.searchDialogue(e.target.value));
         
@@ -70,6 +75,7 @@ class DialogueEditor {
         // Типы условий и команд
         this.bindInput('conditionType', () => this.updateConditionParams());
         this.bindInput('commandType', () => this.updateCommandParams());
+        this.bindInput('requirementType', () => this.updateRequirementParams());
         
         console.log('Все обработчики инициализированы');
     }
@@ -170,8 +176,8 @@ class DialogueEditor {
         const quest = {
             id: 'MyTestQuest1',
             type: 'Kill',
-            name: 'Список дел!',
-            description: 'Купи слона!',
+            name: 'Тетрадь обид',
+            description: 'Белый бим не утопился, нужно исправить (он в детстве укусил) <image=quest_wolf.png>',
             targets: [
                 { prefab: 'Wolf', amount: '10', level: '' },
                 { prefab: 'Skeleton', amount: '5', level: '' }
@@ -196,7 +202,7 @@ class DialogueEditor {
         const nodeId = id || `node_${Date.now()}`;
         const node = {
             id: nodeId,
-            text: "Enter NPC text here...",
+            text: "Сюда писать слова NPC...",
             x: x,
             y: y,
             options: [],
@@ -246,8 +252,8 @@ class DialogueEditor {
         const quest = {
             id: questId,
             type: 'Kill',
-            name: 'Новый квест',
-            description: 'Описание',
+            name: 'New Quest',
+            description: 'Quest description',
             targets: [],
             rewards: [],
             cooldown: '',
@@ -661,7 +667,7 @@ class DialogueEditor {
                     <div class="quest-targets">
                         ${targetsHtml || '<p>Нет целей</p>'}
                     </div>
-                    <button class="btn-small" onclick="editor.showAddQuestTargetModal()">+ Добавить цель</button>
+                    <button class="btn-small" onclick="editor.showQuestTargetModal()">+ Добавить цель</button>
                 </div>
                 
                 <div class="quest-form-section">
@@ -669,7 +675,7 @@ class DialogueEditor {
                     <div class="quest-rewards">
                         ${rewardsHtml || '<p>Нет наград</p>'}
                     </div>
-                    <button class="btn-small" onclick="editor.showAddQuestRewardModal()">+ Добавить награду</button>
+                    <button class="btn-small" onclick="editor.showQuestRewardModal()">+ Добавить награду</button>
                 </div>
                 
                 <div class="quest-form-section">
@@ -677,7 +683,7 @@ class DialogueEditor {
                     <div class="quest-requirements">
                         ${requirementsHtml || '<p>Нет требований</p>'}
                     </div>
-                    <button class="btn-small" onclick="editor.showAddQuestRequirementModal()">+ Добавить требование</button>
+                    <button class="btn-small" onclick="editor.showQuestRequirementModal()">+ Добавить требование</button>
                 </div>
                 
                 <div class="quest-form-section">
@@ -714,6 +720,151 @@ class DialogueEditor {
         }
     }
 
+    showQuestTargetModal() {
+        document.getElementById('questTargetModal').style.display = 'block';
+        // Сбросить значения формы
+        document.getElementById('targetPrefab').value = '';
+        document.getElementById('targetAmount').value = '1';
+        document.getElementById('targetLevel').value = '';
+    }
+
+    showQuestRewardModal() {
+        document.getElementById('questRewardModal').style.display = 'block';
+        // Сбросить значения формы
+        document.getElementById('rewardType').value = 'Item';
+        document.getElementById('rewardPrefab').value = '';
+        document.getElementById('rewardAmount').value = '1';
+        document.getElementById('rewardLevel').value = '1';
+    }
+
+    showQuestRequirementModal() {
+        document.getElementById('questRequirementModal').style.display = 'block';
+        this.updateRequirementParams();
+    }
+
+    saveQuestTarget() {
+        const quest = this.quests.get(this.selectedQuest);
+        if (!quest) return;
+        
+        const prefab = document.getElementById('targetPrefab').value.trim();
+        const amount = document.getElementById('targetAmount').value;
+        const level = document.getElementById('targetLevel').value;
+        
+        if (!prefab) {
+            alert('Введите префаб объекта');
+            return;
+        }
+        
+        quest.targets.push({
+            prefab: prefab,
+            amount: amount,
+            level: level
+        });
+        
+        document.getElementById('questTargetModal').style.display = 'none';
+        this.renderQuestEditor();
+    }
+
+    saveQuestReward() {
+        const quest = this.quests.get(this.selectedQuest);
+        if (!quest) return;
+        
+        const type = document.getElementById('rewardType').value;
+        const prefab = document.getElementById('rewardPrefab').value.trim();
+        const amount = document.getElementById('rewardAmount').value;
+        const level = document.getElementById('rewardLevel').value;
+        
+        if (!prefab) {
+            alert('Введите префаб или название');
+            return;
+        }
+        
+        quest.rewards.push({
+            type: type,
+            prefab: prefab,
+            amount: amount,
+            level: level
+        });
+        
+        document.getElementById('questRewardModal').style.display = 'none';
+        this.renderQuestEditor();
+    }
+
+    saveQuestRequirement() {
+        const quest = this.quests.get(this.selectedQuest);
+        if (!quest) return;
+        
+        const type = document.getElementById('requirementType').value;
+        const paramInputs = document.querySelectorAll('.requirement-param');
+        const params = Array.from(paramInputs).map(input => input.value).filter(val => val);
+        
+        if (params.length === 0) {
+            alert('Заполните параметры требования');
+            return;
+        }
+        
+        quest.requirements.push({ type, params });
+        document.getElementById('questRequirementModal').style.display = 'none';
+        this.renderQuestEditor();
+    }
+
+    deleteQuestTarget(index) {
+        const quest = this.quests.get(this.selectedQuest);
+        if (quest) {
+            quest.targets.splice(index, 1);
+            this.renderQuestEditor();
+        }
+    }
+
+    deleteQuestReward(index) {
+        const quest = this.quests.get(this.selectedQuest);
+        if (quest) {
+            quest.rewards.splice(index, 1);
+            this.renderQuestEditor();
+        }
+    }
+
+    deleteQuestRequirement(index) {
+        const quest = this.quests.get(this.selectedQuest);
+        if (quest) {
+            quest.requirements.splice(index, 1);
+            this.renderQuestEditor();
+        }
+    }
+
+    updateRequirementParams() {
+        const type = document.getElementById('requirementType').value;
+        const paramsContainer = document.getElementById('requirementParams');
+        if (!paramsContainer) return;
+        
+        paramsContainer.innerHTML = '';
+        
+        const paramTemplates = {
+            'HasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
+            'NotHasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
+            'SkillMore': ['SkillName', 'MinLevel'],
+            'SkillLess': ['SkillName', 'MaxLevel'],
+            'QuestFinished': ['QuestName'],
+            'NotFinished': ['QuestName'],
+            'HasQuest': ['QuestName'],
+            'NotHasQuest': ['QuestName'],
+            'GlobalKey': ['KeyName'],
+            'NotGlobalKey': ['KeyName']
+        };
+        
+        const params = paramTemplates[type] || [];
+        params.forEach((paramName, index) => {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `
+                <label>${paramName}:</label>
+                <input type="text" class="form-control requirement-param" 
+                       data-param-index="${index}" placeholder="${paramName}">
+            `;
+            paramsContainer.appendChild(div);
+        });
+    }
+
     showQuestPreview() {
         if (!this.selectedQuest) {
             alert('Выберите квест для предпросмотра');
@@ -736,6 +887,9 @@ class DialogueEditor {
                 ${this.escapeHtml(q.name)}
             </div>
         `).join('');
+        
+        // Обрабатываем описание для извлечения изображения
+        const descriptionWithImage = this.processQuestDescriptionForPreview(quest.description);
         
         const targetsHtml = quest.targets.map(target => `
             <div class="quest-preview-objective">
@@ -761,16 +915,8 @@ class DialogueEditor {
                 </div>
                 <div class="quest-preview-details">
                     <div class="quest-preview-title">${this.escapeHtml(quest.name)}</div>
-                    ${quest.image ? `
-                    <div class="quest-preview-image">
-                        <img src="${quest.image}" alt="Изображение квеста" onerror="this.style.display='none'">
-                    </div>
-        ` : ''}
-                    <div class="quest-preview-description">${this.processTextForPreview(quest.description)}</div>
-                    <div class="form-group">
-                        <label>URL изображения:</label>
-                        <input type="text" class="form-control quest-image" value="${this.escapeHtml(quest.image || '')}" onchange="editor.updateQuestProperty('image', this.value)" placeholder="https://example.com/image.jpg">
-                    </div>
+                    ${descriptionWithImage}
+                    
                     <div class="quest-preview-separator"></div>
                     
                     <div class="quest-preview-section">
@@ -792,6 +938,34 @@ class DialogueEditor {
                     <button class="quest-preview-accept-btn">Взять квест</button>
                 </div>
             </div>
+        `;
+    }
+
+    processQuestDescriptionForPreview(description) {
+        if (!description) return '<div class="quest-preview-description">Нет описания</div>';
+        
+        // Извлекаем тег <image>
+        const imageMatch = description.match(/<image=([^>]+)>/);
+        let imageHtml = '';
+        let cleanDescription = description;
+        
+        if (imageMatch) {
+            const imagePath = imageMatch[1];
+            imageHtml = `
+                <div class="quest-preview-image">
+                    <img src="${imagePath}" alt="Quest Image" onerror="this.style.display='none'">
+                </div>
+            `;
+            // Удаляем тег image из описания
+            cleanDescription = description.replace(/<image=[^>]+>/, '');
+        }
+        
+        // Обрабатываем переносы строк
+        const processedDescription = cleanDescription.replace(/\n/g, '<br>');
+        
+        return `
+            <div class="quest-preview-description">${processedDescription}</div>
+            ${imageHtml}
         `;
     }
 
@@ -869,7 +1043,13 @@ class DialogueEditor {
             'HasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
             'NotHasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
             'SkillMore': ['SkillName', 'MinLevel'],
-            'QuestFinished': ['QuestName']
+            'SkillLess': ['SkillName', 'MaxLevel'],
+            'QuestFinished': ['QuestName'],
+            'NotFinished': ['QuestName'],
+            'HasQuest': ['QuestName'],
+            'NotHasQuest': ['QuestName'],
+            'GlobalKey': ['KeyName'],
+            'NotGlobalKey': ['KeyName']
         };
         
         const params = paramTemplates[type] || [];
@@ -896,7 +1076,16 @@ class DialogueEditor {
             'GiveItem': ['ItemPrefab', 'Amount', 'Level'],
             'RemoveItem': ['ItemPrefab', 'Amount'],
             'GiveQuest': ['QuestName'],
-            'FinishQuest': ['QuestID']
+            'FinishQuest': ['QuestID'],
+            'RemoveQuest': ['QuestName', 'TriggerEvent'],
+            'OpenUI': ['UIType', 'Profile'],
+            'PlaySound': ['SoundName'],
+            'Spawn': ['PrefabName', 'Amount', 'Level'],
+            'Teleport': ['X', 'Y', 'Z', 'TeleportWithOre'],
+            'Damage': ['Amount'],
+            'Heal': ['Amount'],
+            'GiveBuff': ['BuffName', 'Duration'],
+            'AddPin': ['PinName', 'X', 'Y', 'Z']
         };
         
         const params = paramTemplates[type] || [];
@@ -1498,153 +1687,6 @@ class DialogueEditor {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    }
-
-showAddQuestTargetModal() {
-    document.getElementById('questTargetModal').style.display = 'block';
-    // Сбросить значения
-    document.getElementById('targetPrefab').value = '';
-    document.getElementById('targetAmount').value = '1';
-    document.getElementById('targetLevel').value = '';
-}
-
-showAddQuestRewardModal() {
-    document.getElementById('questRewardModal').style.display = 'block';
-    // Сбросить значения
-    document.getElementById('rewardType').value = 'Item';
-    document.getElementById('rewardPrefab').value = '';
-    document.getElementById('rewardAmount').value = '1';
-    document.getElementById('rewardLevel').value = '';
-}
-
-showAddQuestRequirementModal() {
-    document.getElementById('questRequirementModal').style.display = 'block';
-    this.updateRequirementParams();
-}
-
-updateRequirementParams() {
-    const type = document.getElementById('requirementType').value;
-    const paramsContainer = document.getElementById('requirementParams');
-    paramsContainer.innerHTML = '';
-
-    const paramTemplates = {
-        'HasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
-        'NotHasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
-        'SkillMore': ['SkillName', 'MinLevel'],
-        'SkillLess': ['SkillName', 'MaxLevel'],
-        'QuestFinished': ['QuestName'],
-        'QuestNotFinished': ['QuestName'],
-        'HasQuest': ['QuestName'],
-        'NotHasQuest': ['QuestName'],
-        'GlobalKey': ['KeyName'],
-        'NotGlobalKey': ['KeyName']
-    };
-
-    const params = paramTemplates[type] || [];
-    params.forEach((paramName, index) => {
-        const div = document.createElement('div');
-        div.className = 'form-group';
-        div.innerHTML = `
-            <label>${paramName}:</label>
-            <input type="text" class="form-control requirement-param" 
-                   data-param-index="${index}" placeholder="${paramName}">
-        `;
-        paramsContainer.appendChild(div);
-    });
-}
-
-// Добавить в initializeEventListeners обработчики для новых модальных окон
-this.bindButton('saveQuestTargetBtn', () => this.saveQuestTarget());
-this.bindButton('saveQuestRewardBtn', () => this.saveQuestReward());
-this.bindButton('saveQuestRequirementBtn', () => this.saveQuestRequirement());
-this.bindInput('requirementType', () => this.updateRequirementParams());
-
-saveQuestTarget() {
-    const quest = this.quests.get(this.selectedQuest);
-    if (!quest) return;
-
-    const prefab = document.getElementById('targetPrefab').value.trim();
-    const amount = document.getElementById('targetAmount').value.trim();
-    const level = document.getElementById('targetLevel').value.trim();
-
-    if (!prefab) {
-        alert('Введите Prefab цели');
-        return;
-    }
-
-    quest.targets.push({
-        prefab: prefab,
-        amount: amount || '1',
-        level: level
-    });
-
-    this.renderQuestEditor();
-    document.getElementById('questTargetModal').style.display = 'none';
-}
-
-saveQuestReward() {
-    const quest = this.quests.get(this.selectedQuest);
-    if (!quest) return;
-
-    const type = document.getElementById('rewardType').value;
-    const prefab = document.getElementById('rewardPrefab').value.trim();
-    const amount = document.getElementById('rewardAmount').value.trim();
-    const level = document.getElementById('rewardLevel').value.trim();
-
-    if (!prefab) {
-        alert('Введите Prefab/Название награды');
-        return;
-    }
-
-    quest.rewards.push({
-        type: type,
-        prefab: prefab,
-        amount: amount || '1',
-        level: level
-    });
-
-    this.renderQuestEditor();
-    document.getElementById('questRewardModal').style.display = 'none';
-}
-
-saveQuestRequirement() {
-    const quest = this.quests.get(this.selectedQuest);
-    if (!quest) return;
-
-    const type = document.getElementById('requirementType').value;
-    const paramInputs = document.querySelectorAll('.requirement-param');
-    const params = Array.from(paramInputs).map(input => input.value).filter(val => val);
-
-    quest.requirements.push({
-        type: type,
-        params: params
-    });
-
-    this.renderQuestEditor();
-    document.getElementById('questRequirementModal').style.display = 'none';
-}
-    deleteQuestTarget(index) {
-        const quest = this.quests.get(this.selectedQuest);
-        if (quest) {
-            quest.targets.splice(index, 1);
-            this.renderQuestEditor();
-        }
-    }
-
-    deleteQuestReward(index) {
-        const quest = this.quests.get(this.selectedQuest);
-        if (quest) {
-            quest.rewards.splice(index, 1);
-            this.renderQuestEditor();
-        }
-    }
-
-    deleteQuestRequirement(index) {
-        const quest = this.quests.get(this.selectedQuest);
-        if (quest) {
-            quest.requirements.splice(index, 1);
-            this.renderQuestEditor();
-        }
     }
 }
 
