@@ -112,10 +112,10 @@ class DialogueEditor {
         console.log('Создание примерного диалога');
         
         const startNode = this.addNode('default', 100, 100);
-        startNode.text = "Welcome to the village!";
+        startNode.text = "Welcome to the village!\nHow can I help you today?";
         
         const jobNode = this.addNode('JobOptions', 400, 100);
-        jobNode.text = "Available job options:";
+        jobNode.text = "Available job options:\nWhat are you interested in?";
         
         // Добавляем опции
         this.addOptionToNode(startNode.id, "Hello there! What brings you to our peaceful village?");
@@ -141,7 +141,8 @@ class DialogueEditor {
             text: "Enter NPC text here...",
             x: x,
             y: y,
-            options: []
+            options: [],
+            collapsed: false
         };
         
         this.nodes.set(nodeId, node);
@@ -201,37 +202,99 @@ class DialogueEditor {
         if (this.selectedNode === node.id) {
             nodeDiv.classList.add('selected');
         }
+        if (node.collapsed) {
+            nodeDiv.classList.add('collapsed');
+        }
         
         nodeDiv.style.left = `${node.x}px`;
         nodeDiv.style.top = `${node.y}px`;
         nodeDiv.setAttribute('data-node-id', node.id);
         
-        nodeDiv.innerHTML = `
-            <div class="node-header">[${this.escapeHtml(node.id)}]</div>
-            <div class="node-content">${this.escapeHtml(node.text)}</div>
-            <div class="node-options">
-                ${node.options.map((option, index) => `
-                    <div class="option ${this.selectedOption === option.id ? 'selected' : ''}" 
-                         data-option-id="${option.id}">
-                         ${option.icon ? `<span class="option-icon" title="${option.icon}"></span>` : ''}
-                         ${index + 1}) ${this.escapeHtml(option.text)}
-                         ${option.transition ? `→ [${option.transition}]` : ''}
-                    </div>
-                `).join('')}
-            </div>
-        `;
+        // Создаем содержимое узла
+        const header = document.createElement('div');
+        header.className = 'node-header';
+        
+        const collapseBtn = document.createElement('button');
+        collapseBtn.className = 'collapse-btn';
+        collapseBtn.textContent = node.collapsed ? '+' : '−';
+        collapseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleNodeCollapse(node.id);
+        });
+        
+        const title = document.createElement('span');
+        title.textContent = `[${this.escapeHtml(node.id)}]`;
+        
+        header.appendChild(collapseBtn);
+        header.appendChild(title);
+        
+        const content = document.createElement('div');
+        content.className = 'node-content';
+        
+        if (!node.collapsed) {
+            const textDiv = document.createElement('div');
+            textDiv.className = 'node-text';
+            textDiv.textContent = node.text;
+            
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'node-options';
+            
+            node.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                if (this.selectedOption === option.id) {
+                    optionDiv.classList.add('selected');
+                }
+                optionDiv.setAttribute('data-option-id', option.id);
+                
+                let optionHTML = '';
+                if (option.icon) {
+                    optionHTML += `<span class="option-icon" title="${option.icon}"></span>`;
+                }
+                optionHTML += `${index + 1}) ${this.escapeHtml(option.text)}`;
+                
+                optionDiv.innerHTML = optionHTML;
+                
+                // Добавляем информацию о соединении
+                if (option.transition) {
+                    const connectionDiv = document.createElement('div');
+                    connectionDiv.className = 'option-connection';
+                    connectionDiv.textContent = `→ ведет к [${option.transition}]`;
+                    optionDiv.appendChild(connectionDiv);
+                }
+                
+                optionsDiv.appendChild(optionDiv);
+            });
+            
+            content.appendChild(textDiv);
+            content.appendChild(optionsDiv);
+        }
+        
+        nodeDiv.appendChild(header);
+        nodeDiv.appendChild(content);
         
         this.addNodeEventListeners(nodeDiv, node);
         return nodeDiv;
     }
 
+    toggleNodeCollapse(nodeId) {
+        const node = this.nodes.get(nodeId);
+        if (node) {
+            node.collapsed = !node.collapsed;
+            this.renderNodes();
+        }
+    }
+
     addNodeEventListeners(nodeElement, node) {
         // Выбор узла
         nodeElement.addEventListener('click', (e) => {
-            if (e.target.classList.contains('option')) {
-                const optionId = e.target.getAttribute('data-option-id');
-                this.selectOption(node.id, optionId);
-            } else {
+            if (e.target.classList.contains('option') || e.target.classList.contains('option-icon')) {
+                const optionElement = e.target.closest('.option');
+                if (optionElement) {
+                    const optionId = optionElement.getAttribute('data-option-id');
+                    this.selectOption(node.id, optionId);
+                }
+            } else if (!e.target.classList.contains('collapse-btn')) {
                 this.selectNode(node.id);
             }
             e.stopPropagation();
@@ -242,7 +305,7 @@ class DialogueEditor {
         let startX, startY, initialX, initialY;
 
         nodeElement.addEventListener('mousedown', (e) => {
-            if (e.target.classList.contains('option')) return;
+            if (e.target.classList.contains('option') || e.target.classList.contains('collapse-btn')) return;
             
             isDragging = true;
             startX = e.clientX;
@@ -283,9 +346,9 @@ class DialogueEditor {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         
         const fromX = fromNode.x + 200;
-        const fromY = fromNode.y + 100;
+        const fromY = fromNode.y + (fromNode.collapsed ? 25 : 100);
         const toX = toNode.x;
-        const toY = toNode.y + 50;
+        const toY = toNode.y + (toNode.collapsed ? 25 : 50);
         
         line.setAttribute('x1', fromX);
         line.setAttribute('y1', fromY);
@@ -555,25 +618,45 @@ class DialogueEditor {
     }
 
     generatePreview(node) {
+        // Обрабатываем переносы строк и теги цвета
+        const processedText = this.processTextTags(node.text);
+        
         let html = `
             <div class="preview-profile">[${this.escapeHtml(node.id)}]</div>
-            <div class="preview-npc-text">${this.escapeHtml(node.text)}</div>
+            <div class="preview-npc-text">${processedText}</div>
             <div class="preview-options">
         `;
         
         node.options.forEach((option, index) => {
+            const processedOptionText = this.processTextTags(option.text);
             const colorStyle = option.color && option.color !== '#ffffff' ? `style="color: ${option.color}"` : '';
+            
             html += `
                 <div class="preview-option">
                     ${option.icon ? `<div class="option-icon" title="${option.icon}"></div>` : ''}
                     <span class="option-number">${index + 1})</span>
-                    <span class="option-text" ${colorStyle}>${this.escapeHtml(option.text)}</span>
+                    <span class="option-text" ${colorStyle}>${processedOptionText}</span>
                 </div>
             `;
         });
         
         html += '</div>';
         return html;
+    }
+
+    processTextTags(text) {
+        if (!text) return '';
+        
+        // Заменяем \n на <br>
+        let processed = text.replace(/\\n/g, '<br>');
+        
+        // Обрабатываем теги цвета <color=r,g,b>текст</color>
+        processed = processed.replace(/<color=(\d+),(\d+),(\d+)>(.*?)<\/color>/g, 
+            (match, r, g, b, content) => {
+                return `<span style="color: rgb(${r}, ${g}, ${b})">${content}</span>`;
+            });
+        
+        return processed;
     }
 
     exportCfg() {
