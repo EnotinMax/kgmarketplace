@@ -8,15 +8,15 @@
 </head>
 <body>
     <header>
-        <h1>Valheim Dialogue Editor</h1>
+        <h1>Valheim Dialogue & Quest Editor</h1>
         <div class="header-controls">
             <input type="text" id="searchInput" placeholder="Поиск по диалогам...">
-            <button id="importDialogBtn">Импорт диалога</button>
+            <button id="importDialogueBtn">Импорт диалога</button>
             <button id="importQuestBtn">Импорт квеста</button>
+            <button id="questsBtn">Квесты</button>
             <button id="exportBtn">Экспорт .cfg</button>
             <button id="validateBtn">Проверить</button>
             <button id="previewBtn" class="play-btn">▶</button>
-            <button id="questEditorBtn" class="quest-btn">⚙️ Квесты</button>
         </div>
     </header>
 
@@ -111,30 +111,38 @@
         </div>
     </div>
 
-    <div id="questModal" class="modal" style="display: none;">
-        <div class="modal-content quest-modal">
+    <div id="questsModal" class="modal" style="display: none;">
+        <div class="modal-content quests-modal">
             <div class="modal-header">
                 <h2>Редактор квестов</h2>
                 <span class="close">&times;</span>
             </div>
-            <div class="quest-editor">
-                <div class="quest-list-panel">
-                    <h3>Квесты</h3>
-                    <div id="questList" class="quest-list"></div>
-                    <button id="addQuestBtn" class="btn-small">+ Новый квест</button>
-                    <button id="exportQuestsBtn" class="btn-small">Экспорт квестов</button>
-                </div>
-                <div class="quest-details-panel">
-                    <div id="questDetails" class="quest-details">
-                        <div class="no-quest-selected">
-                            Выберите квест для редактирования
-                        </div>
+            <div class="quests-container">
+                <div class="quests-sidebar">
+                    <div class="quests-header">
+                        <h3>Квесты</h3>
+                        <button id="addQuestBtn" class="btn-small">+ Новый квест</button>
                     </div>
-                    <div id="questPreview" class="quest-preview" style="display: none;">
-                        <!-- Preview will be generated here -->
+                    <div id="questsList" class="quests-list"></div>
+                </div>
+                <div class="quest-editor">
+                    <div id="questEditor" class="quest-editor-content">
+                        <div class="no-quest-selected">
+                            <p>Выберите квест для редактирования</p>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="questPreviewModal" class="modal" style="display: none;">
+        <div class="modal-content quest-preview-modal">
+            <div class="modal-header">
+                <h2>Предпросмотр квеста</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="questPreviewContent" class="quest-preview-content"></div>
         </div>
     </div>
 
@@ -182,7 +190,8 @@
         </div>
     </div>
 
-    <input type="file" id="fileInput" accept=".cfg" style="display: none;">
+    <!-- Скрытые inputs для импорта файлов -->
+    <input type="file" id="dialogueFileInput" accept=".cfg" style="display: none;">
     <input type="file" id="questFileInput" accept=".cfg" style="display: none;">
 
     <script src="script.js"></script>
