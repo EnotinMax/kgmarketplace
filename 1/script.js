@@ -130,13 +130,13 @@ class DialogueEditor {
     createSampleDialogue() {
         console.log('Создание примерного диалога');
         
-        const startNode = this.addNode('default', 100, 100);
+        const startNode = this.addNode('Диза_1', 100, 100);
         startNode.text = "Эй, Викинг!\nТы что, письма не ждёшь?";
         
-        const jobNode = this.addNode('JobOptions', 400, 100);
+        const jobNode = this.addNode('До центра?..', 400, 100);
         jobNode.text = "Что я могу тебе предложить:";
         
-        const shopNode = this.addNode('Shop', 400, 300);
+        const shopNode = this.addNode('Скуфий', 400, 300);
         shopNode.text = "И люблю я чяй на правильной травке!\nИ торговать уже в радость!";
         
         // Добавляем опции
@@ -155,7 +155,7 @@ class DialogueEditor {
         farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
         
         this.addOptionToNode(shopNode.id, "Скинь плавник");
-        this.addOptionToNode(shopNode.id, "Нужно<color=#ff6666>больше яблок!</color>");
+        this.addOptionToNode(shopNode.id, "Нужно <color=#ff6666>больше яблок!</color>");
         
         this.renderNodes();
         this.updateTransitionsList();
