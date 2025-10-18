@@ -140,7 +140,7 @@ class DialogueEditor {
         shopNode.text = "И люблю я чяй на правильной травке!\nИ торговать уже в радость!";
         
         // Добавляем опции
-        this.addOptionToNode(startNode.id, "Говорящая рыба?");
+        this.addOptionToNode(startNode.id, "Говорящая рыба? Скинь плавник в личку");
         this.addOptionToNode(startNode.id, "Ну нахер...");
         const workOption = this.addOptionToNode(startNode.id, "До центра за сколько?");
         workOption.transition = jobNode.id;
@@ -154,8 +154,8 @@ class DialogueEditor {
         farmOption.icon = "Hoe";
         farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
         
-        this.addOptionToNode(shopNode.id, "Скинь плавник");
-        this.addOptionToNode(shopNode.id, "Нужно <color=#ff6666>больше яблок!</color>");
+        this.addOptionToNode(shopNode.id, "Браво! Снимаю шляпу!");
+        this.addOptionToNode(shopNode.id, "Нужно больше <color=#ff6666>правильной травки!</color>");
         
         this.renderNodes();
         this.updateTransitionsList();
