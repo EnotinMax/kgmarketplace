@@ -761,8 +761,16 @@ class DialogueEditor {
                 </div>
                 <div class="quest-preview-details">
                     <div class="quest-preview-title">${this.escapeHtml(quest.name)}</div>
+                    ${quest.image ? `
+                    <div class="quest-preview-image">
+                        <img src="${quest.image}" alt="Изображение квеста" onerror="this.style.display='none'">
+                    </div>
+        ` : ''}
                     <div class="quest-preview-description">${this.processTextForPreview(quest.description)}</div>
-                    
+                    <div class="form-group">
+                        <label>URL изображения:</label>
+                        <input type="text" class="form-control quest-image" value="${this.escapeHtml(quest.image || '')}" onchange="editor.updateQuestProperty('image', this.value)" placeholder="https://example.com/image.jpg">
+                    </div>
                     <div class="quest-preview-separator"></div>
                     
                     <div class="quest-preview-section">
