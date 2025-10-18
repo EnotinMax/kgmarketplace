@@ -131,31 +131,31 @@ class DialogueEditor {
         console.log('Создание примерного диалога');
         
         const startNode = this.addNode('default', 100, 100);
-        startNode.text = "Welcome to the village!\nHow can I help you today?";
+        startNode.text = "Эй, Викинг!\nТы что, письма не ждёшь?";
         
         const jobNode = this.addNode('JobOptions', 400, 100);
-        jobNode.text = "Available job options:";
+        jobNode.text = "Что я могу тебе предложить:";
         
         const shopNode = this.addNode('Shop', 400, 300);
-        shopNode.text = "Welcome to my shop!\nWhat can I get for you?";
+        shopNode.text = "И люблю я чяй на правильной травке!\nИ торговать уже в радость!";
         
         // Добавляем опции
-        this.addOptionToNode(startNode.id, "Hello there! What brings you to our peaceful village?");
-        this.addOptionToNode(startNode.id, "How can I assist you today?");
-        const workOption = this.addOptionToNode(startNode.id, "I'm looking for work");
+        this.addOptionToNode(startNode.id, "Говорящая рыба?");
+        this.addOptionToNode(startNode.id, "Ну нахер...");
+        const workOption = this.addOptionToNode(startNode.id, "До центра за сколько?");
         workOption.transition = jobNode.id;
         
-        const shopOption = this.addOptionToNode(startNode.id, "I want to browse your shop");
+        const shopOption = this.addOptionToNode(startNode.id, "Пусть шляпник подойдёт к телефону");
         shopOption.transition = shopNode.id;
         shopOption.color = "#ff9900";
         
-        this.addOptionToNode(jobNode.id, "We have various job opportunities available.\nWhat type of work are you interested in?");
-        const farmOption = this.addOptionToNode(jobNode.id, "Farming");
+        this.addOptionToNode(jobNode.id, "Лети, лети, лепесток,\nчерез запад и восток\nчерез север, через юг...\nПусть меня отпустит!");
+        const farmOption = this.addOptionToNode(jobNode.id, "За 300 монет");
         farmOption.icon = "Hoe";
         farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
         
-        this.addOptionToNode(shopNode.id, "Show me your weapons");
-        this.addOptionToNode(shopNode.id, "I need some supplies\n<color=#ff6666>Special offer today!</color>");
+        this.addOptionToNode(shopNode.id, "Скинь плавник");
+        this.addOptionToNode(shopNode.id, "Нужно<color=#ff6666>больше яблок!</color>");
         
         this.renderNodes();
         this.updateTransitionsList();
@@ -170,8 +170,8 @@ class DialogueEditor {
         const quest = {
             id: 'MyTestQuest1',
             type: 'Kill',
-            name: 'This is my first quest!',
-            description: 'And this is my first quest description!',
+            name: 'Список дел!',
+            description: 'Купи слона!',
             targets: [
                 { prefab: 'Wolf', amount: '10', level: '' },
                 { prefab: 'Skeleton', amount: '5', level: '' }
