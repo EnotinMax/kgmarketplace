@@ -246,8 +246,8 @@ class DialogueEditor {
         const quest = {
             id: questId,
             type: 'Kill',
-            name: 'New Quest',
-            description: 'Quest description',
+            name: 'Новый квест',
+            description: 'Описание',
             targets: [],
             rewards: [],
             cooldown: '',
