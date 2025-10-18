@@ -5,75 +5,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valheim Dialogue Editor</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app">
-        <!-- Header -->
-        <header class="header">
-            <h1>Valheim Dialogue Editor</h1>
-            <div class="controls">
-                <input type="file" id="importFile" accept=".cfg" style="display: none;">
-                <button onclick="document.getElementById('importFile').click()">Импорт</button>
-                <button onclick="exportCfg()">Экспорт .cfg</button>
-                <button onclick="togglePreview()" class="preview-btn">▶ Предпросмотр</button>
-                <input type="text" id="searchInput" placeholder="Поиск по диалогам..." oninput="handleSearch()">
-            </div>
-        </header>
+    <header>
+        <h1>Valheim Dialogue Editor</h1>
+        <div class="header-controls">
+            <input type="text" id="searchInput" placeholder="Поиск по диалогам...">
+            <button id="importBtn">Импорт .cfg</button>
+            <button id="exportBtn">Экспорт .cfg</button>
+            <button id="validateBtn">Проверить</button>
+            <button id="previewBtn" class="play-btn">▶</button>
+        </div>
+    </header>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="node-palette">
-                    <h3>Элементы диалога</h3>
-                    <div class="palette-item" draggable="true" ondragstart="dragStart(event)" data-type="dialog">
-                        📝 Диалоговый узел
-                    </div>
-                    <div class="palette-item" draggable="true" ondragstart="dragStart(event)" data-type="choice">
-                        🔘 Выбор игрока
-                    </div>
-                </div>
-
-                <div class="validation-panel">
-                    <h3>Проверка</h3>
-                    <div id="validationErrors"></div>
-                </div>
+    <main>
+        <div class="workspace">
+            <!-- Панель инструментов -->
+            <div class="toolbar">
+                <button id="addNodeBtn">+ Добавить диалог</button>
+                <button id="addOptionBtn">+ Добавить опцию</button>
+                <button id="deleteBtn">Удалить</button>
+                <div class="tool-separator"></div>
+                <button id="zoomInBtn">+</button>
+                <button id="zoomOutBtn">-</button>
+                <button id="fitToScreenBtn">По размеру</button>
             </div>
 
-            <!-- Canvas -->
+            <!-- Холст для блок-схемы -->
             <div class="canvas-container">
-                <div id="canvas" 
-                     class="canvas"
-                     ondragover="dragOver(event)"
-                     ondrop="drop(event)"
-                     ondragleave="dragLeave(event)">
-                    <!-- Nodes will be added here dynamically -->
+                <svg id="connectionLayer"></svg>
+                <div id="nodeContainer" class="node-container"></div>
+            </div>
+        </div>
+
+        <!-- Редактор свойств -->
+        <div class="properties-panel">
+            <div id="nodeProperties" class="properties-section" style="display: none;">
+                <h3>Диалог NPC</h3>
+                <div class="form-group">
+                    <label>ID профиля:</label>
+                    <input type="text" id="nodeId" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Текст NPC:</label>
+                    <textarea id="nodeText" class="form-control" rows="3"></textarea>
                 </div>
             </div>
 
-            <!-- Properties Panel -->
-            <div class="properties-panel" id="propertiesPanel" style="display: none;">
-                <h3>Свойства узла</h3>
-                <div id="propertiesContent"></div>
+            <div id="optionProperties" class="properties-section" style="display: none;">
+                <h3>Опция игрока</h3>
+                <div class="form-group">
+                    <label>Текст:</label>
+                    <input type="text" id="optionText" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Переход к:</label>
+                    <select id="optionTransition" class="form-control">
+                        <option value="">-- Нет --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Иконка:</label>
+                    <input type="text" id="optionIcon" class="form-control" placeholder="Hammer, SwordIron, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Цвет:</label>
+                    <input type="color" id="optionColor" class="form-control">
+                </div>
+
+                <div class="conditions-section">
+                    <h4>Условия</h4>
+                    <div id="conditionsList"></div>
+                    <button id="addConditionBtn" class="btn-small">+ Добавить условие</button>
+                </div>
+
+                <div class="commands-section">
+                    <h4>Команды</h4>
+                    <div id="commandsList"></div>
+                    <button id="addCommandBtn" class="btn-small">+ Добавить команду</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Предпросмотр диалога</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="previewContent" class="preview-content">
+                <!-- Контент предпросмотра будет генерироваться здесь -->
             </div>
         </div>
     </div>
 
-    <!-- Preview Modal -->
-    <div id="previewModal" class="modal" style="display: none;">
-        <div class="valheim-dialog">
-            <div class="dialog-header">
-                <span class="npc-name">NPC</span>
-                <button class="close-btn" onclick="togglePreview()">×</button>
+    <div id="conditionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить условие</h2>
+                <span class="close">&times;</span>
             </div>
-            <div class="dialog-content">
-                <div id="previewNpcText" class="npc-text"></div>
-                <div id="previewOptions" class="player-options"></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Тип условия:</label>
+                    <select id="conditionType" class="form-control">
+                        <option value="HasItem">HasItem</option>
+                        <option value="NotHasItem">NotHasItem</option>
+                        <option value="SkillMore">SkillMore</option>
+                        <option value="QuestFinished">QuestFinished</option>
+                        <!-- Добавьте остальные условия по необходимости -->
+                    </select>
+                </div>
+                <div id="conditionParams"></div>
+                <button id="saveConditionBtn">Сохранить</button>
             </div>
-            <button id="previewBackBtn" class="back-btn" style="display: none;" onclick="previewGoBack()">Назад</button>
         </div>
     </div>
+
+    <div id="commandModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить команду</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Тип команды:</label>
+                    <select id="commandType" class="form-control">
+                        <option value="GiveItem">GiveItem</option>
+                        <option value="RemoveItem">RemoveItem</option>
+                        <option value="GiveQuest">GiveQuest</option>
+                        <option value="FinishQuest">FinishQuest</option>
+                        <!-- Добавьте остальные команды по необходимости -->
+                    </select>
+                </div>
+                <div id="commandParams"></div>
+                <button id="saveCommandBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытый input для импорта файлов -->
+    <input type="file" id="fileInput" accept=".cfg" style="display: none;">
 
     <script src="script.js"></script>
 </body>
