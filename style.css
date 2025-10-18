@@ -1,14 +1,4 @@
-/* style.css - Valheim Style */
-:root {
-    --valheim-dark: #1a2f1a;
-    --valheim-medium: #2c5530;
-    --valheim-light: #4a7c59;
-    --valheim-gold: #d4af37;
-    --valheim-bronze: #8b7355;
-    --valheim-text: #e0e0e0;
-    --valheim-border: #4a4a4a;
-}
-
+/* Основные стили */
 * {
     margin: 0;
     padding: 0;
@@ -17,734 +7,459 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, var(--valheim-dark) 0%, #0d1a0d 100%);
-    color: var(--valheim-text);
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: #ecf0f1;
     height: 100vh;
     overflow: hidden;
-    background-image: 
-        radial-gradient(circle at 20% 20%, rgba(42, 67, 42, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(74, 124, 89, 0.2) 0%, transparent 50%);
 }
 
-.app {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-/* Header - Viking Style */
-.header {
-    background: linear-gradient(135deg, var(--valheim-medium) 0%, var(--valheim-dark) 100%);
-    border-bottom: 2px solid var(--valheim-bronze);
-    padding: 12px 20px;
+/* Заголовок */
+header {
+    background: rgba(44, 62, 80, 0.95);
+    padding: 15px 20px;
+    border-bottom: 2px solid #3498db;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    position: relative;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-.header::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--valheim-gold), transparent);
+header h1 {
+    color: #3498db;
+    font-size: 24px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-.header h1 {
-    font-family: 'Cinzel', serif;
-    color: var(--valheim-gold);
-    font-size: 1.6em;
-    font-weight: 600;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    letter-spacing: 0.5px;
-}
-
-.controls {
+.header-controls {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
-}
-
-.controls button {
-    background: rgba(139, 115, 85, 0.3);
-    border: 1px solid var(--valheim-bronze);
-    color: var(--valheim-text);
-    padding: 6px 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.9em;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.controls button:hover {
-    background: rgba(139, 115, 85, 0.5);
-    border-color: var(--valheim-gold);
-    transform: translateY(-1px);
-}
-
-.controls button::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.controls button:hover::before {
-    left: 100%;
-}
-
-.preview-btn {
-    background: var(--valheim-light) !important;
-    border-color: #6b8c42 !important;
-    font-weight: bold;
 }
 
 #searchInput {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--valheim-border);
-    color: var(--valheim-text);
-    padding: 6px 10px;
-    border-radius: 3px;
-    width: 180px;
-    font-size: 0.9em;
+    padding: 8px 12px;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    background: #34495e;
+    color: #ecf0f1;
+    width: 200px;
 }
 
-#searchInput:focus {
-    outline: none;
-    border-color: var(--valheim-bronze);
-    box-shadow: 0 0 5px rgba(139, 115, 85, 0.3);
+/* Кнопки */
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
 }
 
-/* Main Content Layout */
-.main-content {
+button:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.play-btn {
+    background: #27ae60;
+    font-size: 16px;
+    padding: 8px 12px;
+}
+
+.play-btn:hover {
+    background: #229954;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #95a5a6;
+}
+
+.btn-small:hover {
+    background: #7f8c8d;
+}
+
+/* Основной контент */
+main {
     display: flex;
-    flex: 1;
-    overflow: hidden;
+    height: calc(100vh - 70px);
 }
 
-/* Sidebar - Wooden Panel Style */
-.sidebar {
-    width: 240px;
-    background: rgba(26, 47, 26, 0.7);
-    border-right: 1px solid var(--valheim-border);
-    padding: 15px;
+.workspace {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    backdrop-filter: blur(5px);
-    position: relative;
+    background: #2c3e50;
 }
 
-.sidebar::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(to bottom, transparent, var(--valheim-bronze), transparent);
-}
-
-.node-palette h3, .validation-panel h3 {
-    color: var(--valheim-gold);
-    margin-bottom: 12px;
-    font-family: 'Cinzel', serif;
-    font-size: 1.1em;
-    border-bottom: 1px solid var(--valheim-border);
-    padding-bottom: 5px;
-}
-
-.palette-item {
-    background: rgba(139, 115, 85, 0.15);
-    border: 1px solid var(--valheim-bronze);
+/* Панель инструментов */
+.toolbar {
     padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 3px;
-    cursor: grab;
-    transition: all 0.2s ease;
-    font-size: 0.9em;
+    background: #34495e;
+    border-bottom: 1px solid #7f8c8d;
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
-.palette-item:hover {
-    background: rgba(139, 115, 85, 0.3);
-    transform: translateX(2px);
+.tool-separator {
+    width: 1px;
+    height: 20px;
+    background: #7f8c8d;
+    margin: 0 10px;
 }
 
-.validation-panel {
-    flex: 1;
-}
-
-#validationErrors {
-    color: #ff6b6b;
-    font-size: 0.85em;
-    line-height: 1.4;
-}
-
-/* Canvas - Parchment-like Background */
+/* Холст */
 .canvas-container {
     flex: 1;
     position: relative;
-    overflow: auto;
     background: 
-        linear-gradient(rgba(139, 115, 85, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(139, 115, 85, 0.1) 1px, transparent 1px),
-        radial-gradient(circle at 20% 20%, #1a2f1a 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, #2c5530 0%, transparent 50%);
-    background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
-    background-color: #1a2f1a;
+        linear-gradient(rgba(52, 73, 94, 0.8), rgba(52, 73, 94, 0.8)),
+        repeating-linear-gradient(0deg, transparent, transparent 19px, #3a506b 20px),
+        repeating-linear-gradient(90deg, transparent, transparent 19px, #3a506b 20px);
+    overflow: hidden;
+    cursor: grab;
 }
 
-.canvas {
-    position: relative;
-    width: 2000px;
-    height: 2000px;
+.canvas-container:active {
+    cursor: grabbing;
 }
 
-/* Dialog Nodes - Carved Wood Style */
-.dialog-node {
+#connectionLayer {
     position: absolute;
-    width: 300px;
-    background: linear-gradient(135deg, var(--valheim-medium) 0%, var(--valheim-dark) 100%);
-    border: 2px solid var(--valheim-bronze);
-    border-radius: 5px;
-    padding: 12px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.node-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Узлы диалогов */
+.dialogue-node {
+    position: absolute;
+    min-width: 200px;
+    max-width: 300px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: 2px solid #1a5276;
+    border-radius: 8px;
+    padding: 15px;
     cursor: move;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
 }
 
-.dialog-node.selected {
-    border-color: var(--valheim-gold);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-    transform: scale(1.02);
+.dialogue-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
-.dialog-node.highlighted {
-    border-color: var(--valheim-light);
-    box-shadow: 0 0 12px rgba(74, 124, 89, 0.6);
+.dialogue-node.selected {
+    border-color: #f39c12;
+    box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.3);
 }
 
 .node-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--valheim-bronze);
-}
-
-.node-id {
     font-weight: bold;
-    color: var(--valheim-gold);
-    font-family: 'Cinzel', serif;
-    font-size: 1em;
-}
-
-.node-delete {
-    background: none;
-    border: none;
-    color: #ff6b6b;
-    cursor: pointer;
-    font-size: 1.1em;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.node-delete:hover {
-    background: rgba(255, 107, 107, 0.1);
-}
-
-.npc-text-area {
-    width: 100%;
-    min-height: 55px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--valheim-border);
-    color: var(--valheim-text);
-    padding: 6px;
-    border-radius: 3px;
-    resize: vertical;
-    margin-bottom: 8px;
-    font-family: inherit;
-    font-size: 0.9em;
-}
-
-.npc-text-area:focus {
-    outline: none;
-    border-color: var(--valheim-bronze);
-}
-
-.options-list {
-    margin-top: 8px;
-}
-
-.option-item {
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid var(--valheim-border);
-    padding: 6px;
-    margin-bottom: 4px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: all 0.2s ease;
-}
-
-.option-item:hover {
-    background: rgba(139, 115, 85, 0.35);
-    border-color: var(--valheim-bronze);
-}
-
-.add-option {
-    width: 100%;
-    background: rgba(74, 124, 89, 0.25);
-    border: 1px dashed var(--valheim-light);
-    color: var(--valheim-text);
-    padding: 6px;
-    border-radius: 3px;
-    cursor: pointer;
-    text-align: center;
-    font-size: 0.85em;
-    transition: all 0.2s ease;
-}
-
-.add-option:hover {
-    background: rgba(74, 124, 89, 0.4);
-    border-style: solid;
-}
-
-/* Properties Panel */
-.properties-panel {
-    width: 280px;
-    background: rgba(26, 47, 26, 0.7);
-    border-left: 1px solid var(--valheim-border);
-    padding: 15px;
-    backdrop-filter: blur(5px);
-}
-
-.properties-panel h3 {
-    color: var(--valheim-gold);
-    margin-bottom: 12px;
-    font-family: 'Cinzel', serif;
-    font-size: 1.1em;
-    border-bottom: 1px solid var(--valheim-border);
+    margin-bottom: 10px;
     padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    color: #f1c40f;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-.property-group {
-    margin-bottom: 12px;
+.node-content {
+    margin-bottom: 10px;
+    line-height: 1.4;
 }
 
-.property-group label {
-    display: block;
-    margin-bottom: 4px;
-    color: #b8b8b8;
-    font-size: 0.85em;
-}
-
-.property-group input,
-.property-group select,
-.property-group textarea {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--valheim-border);
-    color: var(--valheim-text);
-    padding: 6px;
-    border-radius: 3px;
-    font-family: inherit;
-    font-size: 0.85em;
-}
-
-.property-group input:focus,
-.property-group select:focus,
-.property-group textarea:focus {
-    outline: none;
-    border-color: var(--valheim-bronze);
-}
-
-/* Стили для выбора действий */
-.action-selector {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--valheim-border);
-    border-radius: 3px;
+.option {
+    background: rgba(52, 152, 219, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
     padding: 8px;
-    margin-bottom: 8px;
-}
-
-.action-item {
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid var(--valheim-border);
-    padding: 6px;
-    margin-bottom: 4px;
-    border-radius: 3px;
+    margin: 5px 0;
     cursor: pointer;
-    font-size: 0.8em;
     transition: all 0.2s ease;
 }
 
-.action-item:hover {
-    background: rgba(139, 115, 85, 0.4);
-    border-color: var(--valheim-bronze);
+.option:hover {
+    background: rgba(52, 152, 219, 0.5);
+    transform: translateX(5px);
 }
 
-/* Стили для палитры цветов */
-.color-picker-container {
-    position: relative;
-    display: inline-block;
-    width: 100%;
+.option.selected {
+    background: rgba(243, 156, 18, 0.3);
+    border-color: #f39c12;
 }
 
-.color-preview {
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--valheim-border);
-    border-radius: 3px;
-    cursor: pointer;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-.color-palette {
-    position: absolute;
-    top: 35px;
-    left: 0;
-    background: rgba(26, 47, 26, 0.95);
-    border: 1px solid var(--valheim-bronze);
-    border-radius: 3px;
-    padding: 8px;
-    display: none;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 4px;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.color-swatch {
-    width: 20px;
-    height: 20px;
-    border: 1px solid var(--valheim-border);
-    border-radius: 2px;
-    cursor: pointer;
-    transition: transform 0.1s ease;
-}
-
-.color-swatch:hover {
-    transform: scale(1.2);
-    border-color: var(--valheim-gold);
-}
-
-.condition-item,
-.command-item {
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid var(--valheim-border);
-    padding: 6px;
-    margin-bottom: 4px;
-    border-radius: 3px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8em;
-}
-
-.remove-btn {
-    background: none;
-    border: none;
-    color: #ff6b6b;
-    cursor: pointer;
-    font-size: 1em;
-}
-
-/* Connection Lines */
-.connection {
-    position: absolute;
-    pointer-events: none;
-    z-index: -1;
-}
-
-.connection line {
-    stroke: var(--valheim-bronze);
-    stroke-width: 2;
-    marker-end: url(#arrowhead);
-}
-
-/* Preview Modal - Новый стиль */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.valheim-dialog {
-    background: linear-gradient(135deg, #2c5530 0%, #1a2f1a 100%);
-    border: 3px solid var(--valheim-bronze);
-    border-radius: 8px;
-    width: 500px;
-    max-width: 90vw;
-    color: var(--valheim-text);
-    font-family: 'Cinzel', serif;
-    box-shadow: 0 0 40px rgba(139, 115, 85, 0.4);
-    position: relative;
-    overflow: hidden;
-}
-
-.valheim-dialog::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--valheim-gold), transparent);
-}
-
-.dialog-header {
-    background: rgba(0, 0, 0, 0.4);
+/* Панель свойств */
+.properties-panel {
+    width: 350px;
+    background: #34495e;
+    border-left: 2px solid #3498db;
     padding: 20px;
-    text-align: center;
-    border-bottom: 1px solid var(--valheim-bronze);
-}
-
-.npc-name {
-    font-size: 1.4em;
-    font-weight: bold;
-    color: var(--valheim-gold);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    color: var(--valheim-text);
-    font-size: 1.5em;
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.dialog-content {
-    padding: 0;
-}
-
-.npc-text {
-    font-size: 1.1em;
-    line-height: 1.5;
-    padding: 25px;
-    text-align: center;
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid var(--valheim-border);
-    margin: 0;
-}
-
-.player-options {
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-}
-
-.option-btn {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--valheim-border);
-    color: var(--valheim-text);
-    padding: 18px 25px;
-    text-align: right;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Cinzel', serif;
-    font-size: 1em;
-    position: relative;
-    width: 100%;
-}
-
-.option-btn:last-child {
-    border-bottom: none;
-}
-
-.option-btn:hover {
-    background: rgba(139, 115, 85, 0.2);
-    color: var(--valheim-gold);
-}
-
-.option-btn::after {
-    content: "›";
-    position: absolute;
-    right: 20px;
-    color: var(--valheim-bronze);
-    font-size: 1.2em;
-}
-
-.option-btn:hover::after {
-    color: var(--valheim-gold);
-    transform: translateX(3px);
-}
-
-.back-btn {
-    background: rgba(139, 115, 85, 0.3);
-    border: 1px solid var(--valheim-bronze);
-    color: var(--valheim-text);
-    padding: 12px 25px;
-    border-radius: 0 0 5px 5px;
-    cursor: pointer;
-    font-family: 'Cinzel', serif;
-    font-size: 0.9em;
-    text-align: center;
-    transition: all 0.2s ease;
-    width: 100%;
-}
-
-.back-btn:hover {
-    background: rgba(139, 115, 85, 0.5);
-    color: var(--valheim-gold);
-}
-
-/* Модальные окна для выбора действий */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-}
-
-.action-modal {
-    background: linear-gradient(135deg, var(--valheim-medium) 0%, var(--valheim-dark) 100%);
-    border: 2px solid var(--valheim-bronze);
-    border-radius: 5px;
-    width: 400px;
-    max-width: 90vw;
-    max-height: 80vh;
     overflow-y: auto;
 }
 
-.modal-header {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--valheim-bronze);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.properties-section h3 {
+    color: #3498db;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #7f8c8d;
 }
 
-.modal-header h3 {
-    color: var(--valheim-gold);
-    font-family: 'Cinzel', serif;
-    margin: 0;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    color: var(--valheim-text);
-    font-size: 1.3em;
-    cursor: pointer;
-}
-
-.modal-content {
-    padding: 15px;
-}
-
-.action-category {
+.form-group {
     margin-bottom: 15px;
 }
 
-.action-category h4 {
-    color: var(--valheim-gold);
-    margin-bottom: 8px;
-    font-family: 'Cinzel', serif;
-    border-bottom: 1px solid var(--valheim-border);
-    padding-bottom: 4px;
-}
-
-.action-button {
-    width: 100%;
-    background: rgba(139, 115, 85, 0.2);
-    border: 1px solid var(--valheim-border);
-    color: var(--valheim-text);
-    padding: 8px 12px;
+.form-group label {
+    display: block;
     margin-bottom: 5px;
-    border-radius: 3px;
+    color: #bdc3c7;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.conditions-section, .commands-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #7f8c8d;
+}
+
+.conditions-section h4, .commands-section h4 {
+    color: #f39c12;
+    margin-bottom: 10px;
+}
+
+.condition-item, .command-item {
+    background: #2c3e50;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    border-left: 3px solid #e74c3c;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.command-item {
+    border-left-color: #27ae60;
+}
+
+.condition-item span, .command-item span {
+    flex: 1;
+    font-size: 12px;
+}
+
+.condition-item button, .command-item button {
+    padding: 2px 6px;
+    font-size: 10px;
+    background: #e74c3c;
+}
+
+.command-item button {
+    background: #c0392b;
+}
+
+/* Модальные окна */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 2px solid #3498db;
+}
+
+.modal-header {
+    padding: 20px;
+    background: #2c3e50;
+    border-bottom: 1px solid #3498db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+    color: #3498db;
+    margin: 0;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
     cursor: pointer;
-    text-align: left;
-    font-size: 0.85em;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #e74c3c;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Предпросмотр в стиле Valheim */
+.preview-content {
+    background: #1a1a1a;
+    border: 3px solid #8b7355;
+    border-radius: 10px;
+    padding: 20px;
+    color: #e8d8a3;
+    font-family: 'MedievalSharp', cursive;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.preview-profile {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #f1c40f;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.preview-npc-text {
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(139, 115, 85, 0.2);
+    border-radius: 5px;
+    border: 1px solid #8b7355;
+}
+
+.preview-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.preview-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: rgba(139, 115, 85, 0.3);
+    border: 1px solid #8b7355;
+    border-radius: 5px;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.action-button:hover {
-    background: rgba(139, 115, 85, 0.4);
-    border-color: var(--valheim-bronze);
+.preview-option:hover {
+    background: rgba(139, 115, 85, 0.5);
+    transform: translateX(5px);
 }
 
-/* Responsive Design */
+.option-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    background: #f1c40f;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.option-number {
+    color: #f39c12;
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.option-text {
+    flex: 1;
+}
+
+/* Адаптивность */
 @media (max-width: 1200px) {
-    .sidebar {
-        width: 200px;
-    }
-    
     .properties-panel {
-        width: 250px;
-    }
-    
-    .dialog-node {
-        width: 280px;
+        width: 300px;
     }
 }
 
 @media (max-width: 768px) {
-    .header {
+    main {
         flex-direction: column;
-        gap: 10px;
     }
     
-    .controls {
+    .properties-panel {
         width: 100%;
-        justify-content: center;
+        height: 300px;
+        border-left: none;
+        border-top: 2px solid #3498db;
     }
     
-    .valheim-dialog {
-        width: 95vw;
+    .modal-content {
+        width: 95%;
+        margin: 2% auto;
     }
-    
-    .npc-text {
-        padding: 20px 15px;
-    }
-    
-    .option-btn {
-        padding: 15px 20px;
-    }
+}
+
+/* Прокрутка */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2c3e50;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
 }
