@@ -130,13 +130,13 @@ class DialogueEditor {
     createSampleDialogue() {
         console.log('Создание примерного диалога');
         
-        const startNode = this.addNode('Диза_1', 100, 100);
+        const startNode = this.addNode('diza_1', 100, 100);
         startNode.text = "Эй, Викинг!\nТы что, письма не ждёшь?";
         
-        const jobNode = this.addNode('До центра?..', 400, 100);
+        const jobNode = this.addNode('diza_to_center', 400, 100);
         jobNode.text = "Что я могу тебе предложить:";
         
-        const shopNode = this.addNode('Скуфий', 400, 300);
+        const shopNode = this.addNode('skuffiy', 400, 300);
         shopNode.text = "И люблю я чяй на правильной травке!\nИ торговать уже в радость!";
         
         // Добавляем опции
