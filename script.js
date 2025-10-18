@@ -27,13 +27,20 @@ class DialogueEditor {
         this.bindButton('importBtn', () => document.getElementById('fileInput').click());
         this.bindButton('validateBtn', () => this.validateDialogue());
         
+        // Новая кнопка добавления опции в панели узла
+        this.bindButton('addNodeOptionBtn', () => this.addOptionToSelectedNode());
+        
         // Поиск
         this.bindInput('searchInput', (e) => this.searchDialogue(e.target.value));
         
         // Свойства узлов и опций
         this.bindInput('nodeId', (e) => this.updateNodeProperty('id', e.target.value));
         this.bindInput('nodeText', (e) => this.updateNodeProperty('text', e.target.value));
-        
+        this.bindInput('optionText', (e) => this.updateOptionProperty('text', e.target.value));
+        this.bindInput('optionTransition', (e) => this.updateOptionProperty('transition', e.target.value));
+        this.bindInput('optionIcon', (e) => this.updateOptionProperty('icon', e.target.value));
+        this.bindInput('optionColor', (e) => this.updateOptionProperty('color', e.target.value));
+
         // Условия и команды
         this.bindButton('addConditionBtn', () => this.showConditionModal());
         this.bindButton('addCommandBtn', () => this.showCommandModal());
@@ -90,6 +97,7 @@ class DialogueEditor {
             `;
         }).join('');
         
+        // Перемещаем кнопку сворачивания на левую сторону
         nodeDiv.innerHTML = `
             <div class="node-header">
                 <button class="collapse-btn" data-node-id="${node.id}">
@@ -121,217 +129,225 @@ class DialogueEditor {
         document.getElementById('nodeId').value = node.id;
         document.getElementById('nodeText').value = node.text;
         
-        // Добавляем редактор опций для узла
-        this.renderNodeOptionsEditor(node);
-    }
-
-    renderNodeOptionsEditor(node) {
-        // Создаем или обновляем редактор опций
-        let optionsEditor = document.getElementById('nodeOptionsEditor');
-        if (!optionsEditor) {
-            optionsEditor = document.createElement('div');
-            optionsEditor.id = 'nodeOptionsEditor';
-            optionsEditor.className = 'node-options-editor';
-            document.getElementById('nodeProperties').appendChild(optionsEditor);
-        }
-        
-        optionsEditor.innerHTML = `
-            <h4>Опции игрока</h4>
-            <div id="nodeOptionsList"></div>
-            <button id="addNodeOptionBtn" class="btn-small" style="margin-top: 10px;">+ Добавить опцию</button>
-        `;
-        
-        // Рендерим список опций
+        // Обновляем список опций в панели узла
         this.renderNodeOptionsList(node);
-        
-        // Добавляем обработчики
-        this.bindButton('addNodeOptionBtn', () => this.addOptionToCurrentNode());
     }
 
+    // Новый метод для отображения списка опций в панели узла
     renderNodeOptionsList(node) {
-        const container = document.getElementById('nodeOptionsList');
-        if (!container) return;
+        const optionsList = document.getElementById('nodeOptionsList');
+        if (!optionsList) return;
         
-        container.innerHTML = '';
+        optionsList.innerHTML = '';
         
         node.options.forEach((option, index) => {
-            const optionElement = document.createElement('div');
-            optionElement.className = 'option-editor-item';
-            optionElement.innerHTML = `
-                <div class="option-editor-header">
-                    <span class="option-editor-index">${index + 1})</span>
-                    <div class="option-editor-controls">
-                        <button onclick="editor.moveOptionUp(${index})" ${index === 0 ? 'disabled' : ''}>↑</button>
-                        <button onclick="editor.moveOptionDown(${index})" ${index === node.options.length - 1 ? 'disabled' : ''}>↓</button>
-                        <button onclick="editor.deleteNodeOption(${index})" style="background: #e74c3c;">×</button>
-                    </div>
+            const optionEditor = document.createElement('div');
+            optionEditor.className = 'node-option-editor';
+            optionEditor.innerHTML = `
+                <div class="node-option-header">
+                    <span class="node-option-number">${index + 1}</span>
+                    <button class="remove-option-btn" data-option-id="${option.id}">×</button>
                 </div>
-                <div class="option-editor-content">
-                    <div class="option-editor-row">
-                        <div class="form-group option-editor-text">
-                            <label>Текст опции:</label>
-                            <textarea class="form-control node-option-text" data-option-index="${index}" 
-                                      rows="2" placeholder="Текст опции...">${this.escapeHtml(option.text)}</textarea>
-                        </div>
+                <div class="option-fields">
+                    <div class="option-field option-field-full">
+                        <label>Текст:</label>
+                        <input type="text" class="option-text-input" data-option-id="${option.id}" 
+                               value="${this.escapeHtml(option.text)}" placeholder="Текст опции">
                     </div>
-                    <div class="option-editor-row">
-                        <div class="form-group option-editor-transition">
-                            <label>Переход:</label>
-                            <select class="form-control node-option-transition" data-option-index="${index}">
-                                <option value="">-- Нет --</option>
-                                ${Array.from(this.nodes.keys()).filter(id => id !== this.selectedNode).map(id => 
-                                    `<option value="${id}" ${option.transition === id ? 'selected' : ''}>${id}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group option-editor-icon">
-                            <label>Иконка:</label>
-                            <input type="text" class="form-control node-option-icon" data-option-index="${index}" 
-                                   value="${option.icon}" placeholder="Hammer, Sword...">
-                        </div>
-                        <div class="form-group option-editor-color">
-                            <label>Цвет:</label>
-                            <input type="color" class="form-control node-option-color" data-option-index="${index}" 
-                                   value="${option.color || '#ffffff'}">
-                        </div>
+                    <div class="option-field">
+                        <label>Переход:</label>
+                        <select class="option-transition-select" data-option-id="${option.id}">
+                            <option value="">-- Нет --</option>
+                            ${this.generateTransitionOptions(option.transition)}
+                        </select>
                     </div>
-                    <div class="option-editor-actions">
-                        <button class="btn-small" onclick="editor.showConditionsForOption(${index})">Условия</button>
-                        <button class="btn-small" onclick="editor.showCommandsForOption(${index})">Команды</button>
+                    <div class="option-field">
+                        <label>Иконка:</label>
+                        <input type="text" class="option-icon-input" data-option-id="${option.id}" 
+                               value="${option.icon || ''}" placeholder="Иконка">
+                    </div>
+                    <div class="option-field">
+                        <label>Цвет:</label>
+                        <input type="color" class="option-color-input" data-option-id="${option.id}" 
+                               value="${option.color || '#ffffff'}">
                     </div>
                 </div>
             `;
-            container.appendChild(optionElement);
+            optionsList.appendChild(optionEditor);
         });
         
-        // Добавляем обработчики изменений
+        // Добавляем обработчики событий для полей ввода
         this.attachNodeOptionEventListeners();
     }
 
+    // Генерация опций для выпадающего списка переходов
+    generateTransitionOptions(currentTransition) {
+        let options = '';
+        this.nodes.forEach((node, nodeId) => {
+            if (nodeId !== this.selectedNode) {
+                const selected = nodeId === currentTransition ? 'selected' : '';
+                options += `<option value="${nodeId}" ${selected}>${nodeId}</option>`;
+            }
+        });
+        return options;
+    }
+
+    // Привязка обработчиков событий для полей опций в панели узла
     attachNodeOptionEventListeners() {
         // Текст опции
-        document.querySelectorAll('.node-option-text').forEach(input => {
+        document.querySelectorAll('.option-text-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                const index = parseInt(e.target.getAttribute('data-option-index'));
-                this.updateNodeOptionProperty(index, 'text', e.target.value);
+                const optionId = e.target.getAttribute('data-option-id');
+                this.updateOptionPropertyDirect(optionId, 'text', e.target.value);
             });
         });
         
-        // Переход
-        document.querySelectorAll('.node-option-transition').forEach(select => {
+        // Переход опции
+        document.querySelectorAll('.option-transition-select').forEach(select => {
             select.addEventListener('change', (e) => {
-                const index = parseInt(e.target.getAttribute('data-option-index'));
-                this.updateNodeOptionProperty(index, 'transition', e.target.value);
+                const optionId = e.target.getAttribute('data-option-id');
+                this.updateOptionPropertyDirect(optionId, 'transition', e.target.value);
             });
         });
         
-        // Иконка
-        document.querySelectorAll('.node-option-icon').forEach(input => {
+        // Иконка опции
+        document.querySelectorAll('.option-icon-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                const index = parseInt(e.target.getAttribute('data-option-index'));
-                this.updateNodeOptionProperty(index, 'icon', e.target.value);
+                const optionId = e.target.getAttribute('data-option-id');
+                this.updateOptionPropertyDirect(optionId, 'icon', e.target.value);
             });
         });
         
-        // Цвет
-        document.querySelectorAll('.node-option-color').forEach(input => {
+        // Цвет опции
+        document.querySelectorAll('.option-color-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                const index = parseInt(e.target.getAttribute('data-option-index'));
-                this.updateNodeOptionProperty(index, 'color', e.target.value);
+                const optionId = e.target.getAttribute('data-option-id');
+                this.updateOptionPropertyDirect(optionId, 'color', e.target.value);
+            });
+        });
+        
+        // Кнопки удаления опции
+        document.querySelectorAll('.remove-option-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const optionId = e.target.getAttribute('data-option-id');
+                this.removeOptionFromSelectedNode(optionId);
             });
         });
     }
 
-    updateNodeOptionProperty(optionIndex, property, value) {
-        const node = this.nodes.get(this.selectedNode);
-        if (!node || optionIndex >= node.options.length) return;
-        
-        node.options[optionIndex][property] = value;
-        this.renderNodes();
-    }
-
-    addOptionToCurrentNode() {
-        if (!this.selectedNode) return;
-        
+    // Новый метод для обновления свойств опции напрямую (без выбора опции)
+    updateOptionPropertyDirect(optionId, property, value) {
         const node = this.nodes.get(this.selectedNode);
         if (!node) return;
         
-        this.addOptionToNode(this.selectedNode, "Новая опция");
-        this.renderNodeOptionsList(node);
+        const option = node.options.find(opt => opt.id === optionId);
+        if (!option) return;
+        
+        option[property] = value;
+        this.renderNodes();
     }
 
-    deleteNodeOption(optionIndex) {
-        const node = this.nodes.get(this.selectedNode);
-        if (!node || optionIndex >= node.options.length) return;
+    // Новый метод для добавления опции к выбранному узлу
+    addOptionToSelectedNode() {
+        if (!this.selectedNode) {
+            alert('Сначала выберите узел');
+            return;
+        }
         
-        node.options.splice(optionIndex, 1);
+        const option = this.addOptionToNode(this.selectedNode, "Новая опция");
+        if (option) {
+            this.renderNodeOptionsList(this.nodes.get(this.selectedNode));
+        }
+    }
+
+    // Новый метод для удаления опции из выбранного узла
+    removeOptionFromSelectedNode(optionId) {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node) return;
+        
+        node.options = node.options.filter(opt => opt.id !== optionId);
         this.renderNodes();
         this.renderNodeOptionsList(node);
     }
 
-    moveOptionUp(optionIndex) {
-        const node = this.nodes.get(this.selectedNode);
-        if (!node || optionIndex <= 0) return;
+    // ... остальные методы остаются без изменений до метода drawConnection ...
+
+    drawConnection(fromNode, option) {
+        const toNode = this.nodes.get(option.transition);
+        if (!toNode) return;
         
-        const temp = node.options[optionIndex];
-        node.options[optionIndex] = node.options[optionIndex - 1];
-        node.options[optionIndex - 1] = temp;
+        const svg = document.getElementById('connectionLayer');
         
-        this.renderNodes();
-        this.renderNodeOptionsList(node);
+        // Находим элементы в DOM для точного позиционирования
+        const fromNodeElement = document.querySelector(`[data-node-id="${fromNode.id}"]`);
+        const toNodeElement = document.querySelector(`[data-node-id="${toNode.id}"]`);
+        
+        if (!fromNodeElement || !toNodeElement) return;
+        
+        // Получаем позиции элементов
+        const fromRect = fromNodeElement.getBoundingClientRect();
+        const toRect = toNodeElement.getBoundingClientRect();
+        const canvasRect = document.querySelector('.canvas-container').getBoundingClientRect();
+        
+        // Вычисляем координаты с учетом смещения холста
+        // Стрелка начинается из центра правого края исходного узла
+        const fromX = fromRect.left - canvasRect.left + fromRect.width;
+        const fromY = fromRect.top - canvasRect.top + fromRect.height / 2;
+        
+        // Стрелка заканчивается в центре левого края целевого узла
+        const toX = toRect.left - canvasRect.left;
+        const toY = toRect.top - canvasRect.top + toRect.height / 2;
+        
+        // Создаем путь соединения
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        
+        // Вычисляем контрольные точки для изгиба
+        const controlX = (fromX + toX) / 2;
+        const controlY1 = fromY;
+        const controlY2 = toY;
+        
+        // Создаем изогнутую линию
+        const pathData = `M ${fromX} ${fromY} C ${controlX} ${controlY1}, ${controlX} ${controlY2}, ${toX} ${toY}`;
+        path.setAttribute('d', pathData);
+        path.setAttribute('class', 'connection-path');
+        
+        // Добавляем начальную точку (круг)
+        const startCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        startCircle.setAttribute('cx', fromX);
+        startCircle.setAttribute('cy', fromY);
+        startCircle.setAttribute('class', 'connection-circle');
+        
+        svg.appendChild(startCircle);
+        svg.appendChild(path);
     }
 
-    moveOptionDown(optionIndex) {
-        const node = this.nodes.get(this.selectedNode);
-        if (!node || optionIndex >= node.options.length - 1) return;
-        
-        const temp = node.options[optionIndex];
-        node.options[optionIndex] = node.options[optionIndex + 1];
-        node.options[optionIndex + 1] = temp;
-        
-        this.renderNodes();
-        this.renderNodeOptionsList(node);
-    }
+    // ... остальные методы остаются без изменений до метода processTextForDisplay ...
 
-    showConditionsForOption(optionIndex) {
-        this.selectedOption = this.nodes.get(this.selectedNode).options[optionIndex].id;
-        this.showConditionModal();
-    }
-
-    showCommandsForOption(optionIndex) {
-        this.selectedOption = this.nodes.get(this.selectedNode).options[optionIndex].id;
-        this.showCommandModal();
-    }
-
-    // ... остальные методы остаются без изменений ...
-
-    // Обновляем метод processTextForDisplay для корректной обработки переносов
+    // Исправленный метод для отображения текста с переносами
     processTextForDisplay(text) {
         if (!text) return '';
         
-        // Экранируем HTML кроме тегов <br>
-        let processed = this.escapeHtml(text);
+        // Заменяем \n на настоящие переносы строк (полагаемся на white-space: pre-line в CSS)
+        // Экранируем HTML-теги для безопасности
+        return this.escapeHtml(text);
+    }
+
+    // Метод для предпросмотра (оставляем как есть)
+    processTextForPreview(text) {
+        if (!text) return '';
         
         // Заменяем \n на <br>
-        processed = processed.replace(/\n/g, '<br>');
+        let processed = text.replace(/\n/g, '<br>');
         
-        // Обрабатываем теги <color> (после экранирования, чтобы не экранировать наши span)
-        processed = processed.replace(/&lt;color=([^&]+)&gt;([^&]*)&lt;\/color&gt;/g, 
+        // Обрабатываем теги <color>
+        processed = processed.replace(/<color=([^>]+)>([^<]*)<\/color>/g, 
             '<span style="color: $1">$2</span>');
         
         // Также поддерживаем формат <color=#hex>text</color>
-        processed = processed.replace(/&lt;color=#([0-9a-fA-F]{6})&gt;([^&]*)&lt;\/color&gt;/g,
+        processed = processed.replace(/<color=#([0-9a-fA-F]{6})>([^<]*)<\/color>/g,
             '<span style="color: #$1">$2</span>');
         
         return processed;
-    }
-
-    // Обновляем метод escapeHtml для корректной работы
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 
     // ... остальные методы остаются без изменений ...
