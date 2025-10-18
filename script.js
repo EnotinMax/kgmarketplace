@@ -8,6 +8,7 @@ class DialogueEditor {
         this.canvasOffset = { x: 0, y: 0 };
         this.isCanvasDragging = false;
         this.canvasStartPos = { x: 0, y: 0 };
+        this.previewHistory = [];
         
         console.log('DialogueEditor инициализирован');
         this.initializeEventListeners();
@@ -86,7 +87,11 @@ class DialogueEditor {
         // Закрытие модальных окон
         document.querySelectorAll('.close').forEach(closeBtn => {
             closeBtn.addEventListener('click', (e) => {
-                e.target.closest('.modal').style.display = 'none';
+                const modal = e.target.closest('.modal');
+                modal.style.display = 'none';
+                if (modal.id === 'previewModal') {
+                    this.previewHistory = [];
+                }
             });
         });
 
@@ -94,6 +99,9 @@ class DialogueEditor {
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
+                if (e.target.id === 'previewModal') {
+                    this.previewHistory = [];
+                }
             }
         });
     }
@@ -115,10 +123,10 @@ class DialogueEditor {
         startNode.text = "Welcome to the village!\nHow can I help you today?";
         
         const jobNode = this.addNode('JobOptions', 400, 100);
-        jobNode.text = "Available job options:";
+        jobNode.text = "Available job options:\n<color=#ff9900>Choose wisely!</color>";
         
         const shopNode = this.addNode('Shop', 400, 300);
-        shopNode.text = "Welcome to my shop!";
+        shopNode.text = "Welcome to my shop!\nWhat can I get for you?";
         
         // Добавляем опции
         this.addOptionToNode(startNode.id, "Hello there! What brings you to our peaceful village?");
@@ -130,13 +138,13 @@ class DialogueEditor {
         shopOption.transition = shopNode.id;
         shopOption.color = "#ff9900";
         
-        this.addOptionToNode(jobNode.id, "We have various job opportunities available. What type of work are you interested in?");
+        this.addOptionToNode(jobNode.id, "We have various job opportunities available.\nWhat type of work are you interested in?");
         const farmOption = this.addOptionToNode(jobNode.id, "Farming");
         farmOption.icon = "Hoe";
         farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
         
         this.addOptionToNode(shopNode.id, "Show me your weapons");
-        this.addOptionToNode(shopNode.id, "I need some supplies");
+        this.addOptionToNode(shopNode.id, "I need some supplies\n<color=#00ff00>Special offer!</color>");
         
         this.renderNodes();
         this.updateTransitionsList();
@@ -220,13 +228,19 @@ class DialogueEditor {
         nodeDiv.style.top = `${node.y}px`;
         nodeDiv.setAttribute('data-node-id', node.id);
         
+        const processedText = this.processTextForDisplay(node.text);
         const optionsHtml = node.options.map((option, index) => {
             const transitionText = option.transition ? `→ ${option.transition}` : '';
+            const processedOptionText = this.processTextForDisplay(option.text);
+            const colorStyle = option.color && option.color !== '#ffffff' ? `style="color: ${option.color}"` : '';
+            
             return `
                 <div class="option ${this.selectedOption === option.id ? 'selected' : ''}" 
                      data-option-id="${option.id}">
                      ${option.icon ? `<span class="option-icon" title="${option.icon}"></span>` : ''}
-                     <span class="option-text">${index + 1}) ${this.escapeHtml(option.text)}</span>
+                     <span class="option-text" ${colorStyle}>
+                         <span class="option-text-colored">${index + 1}) ${processedOptionText}</span>
+                     </span>
                      ${transitionText ? `<span class="option-transition">${transitionText}</span>` : ''}
                 </div>
             `;
@@ -240,7 +254,9 @@ class DialogueEditor {
                 </button>
             </div>
             <div class="node-content">
-                <div class="node-text">${this.escapeHtml(node.text)}</div>
+                <div class="node-text">
+                    <span class="node-text-colored">${processedText}</span>
+                </div>
                 <div class="node-options">
                     ${optionsHtml}
                 </div>
@@ -325,10 +341,13 @@ class DialogueEditor {
         const svg = document.getElementById('connectionLayer');
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         
-        const fromX = fromNode.x + 200;
-        const fromY = fromNode.y + (fromNode.collapsed ? 25 : 100);
+        // Вычисляем центр правого края исходного узла
+        const fromX = fromNode.x + 200; // ширина узла
+        const fromY = fromNode.y + (fromNode.collapsed ? 25 : 50); // центр по вертикали
+        
+        // Вычисляем центр левого края целевого узла
         const toX = toNode.x;
-        const toY = toNode.y + (toNode.collapsed ? 25 : 50);
+        const toY = toNode.y + (toNode.collapsed ? 25 : 50); // центр по вертикали
         
         line.setAttribute('x1', fromX);
         line.setAttribute('y1', fromY);
@@ -590,15 +609,54 @@ class DialogueEditor {
         }
         
         const modal = document.getElementById('previewModal');
-        const content = document.getElementById('previewContent');
-        
-        const startNode = this.nodes.get(this.selectedNode);
-        content.innerHTML = this.generatePreview(startNode);
         modal.style.display = 'block';
+        
+        this.previewHistory = [];
+        this.showPreviewNode(this.selectedNode);
+    }
+
+    showPreviewNode(nodeId) {
+        const node = this.nodes.get(nodeId);
+        if (!node) return;
+        
+        // Добавляем текущий узел в историю
+        if (!this.previewHistory.includes(nodeId)) {
+            this.previewHistory.push(nodeId);
+        }
+        
+        const historyContent = document.getElementById('previewHistory');
+        const currentContent = document.getElementById('previewCurrent');
+        
+        // Обновляем историю
+        historyContent.innerHTML = this.previewHistory.map((historyNodeId, index) => {
+            const historyNode = this.nodes.get(historyNodeId);
+            if (!historyNode) return '';
+            
+            const isCurrent = historyNodeId === nodeId;
+            return `
+                <div class="preview-history-item ${isCurrent ? 'current' : ''}">
+                    ${index + 1}. [${this.escapeHtml(historyNode.id)}]
+                </div>
+            `;
+        }).join('');
+        
+        // Показываем текущий узел
+        currentContent.innerHTML = this.generatePreview(node);
+        
+        // Добавляем обработчики для опций
+        currentContent.querySelectorAll('.preview-option').forEach((optionElement, index) => {
+            const option = node.options[index];
+            if (option && option.transition) {
+                optionElement.addEventListener('click', () => {
+                    this.showPreviewNode(option.transition);
+                });
+            } else {
+                optionElement.classList.add('disabled');
+            }
+        });
     }
 
     generatePreview(node) {
-        // Обрабатываем переносы строк и теги цвета
         const processedText = this.processTextForPreview(node.text);
         
         let html = `
@@ -611,9 +669,10 @@ class DialogueEditor {
             const processedOptionText = this.processTextForPreview(option.text);
             const colorStyle = option.color && option.color !== '#ffffff' ? `style="color: ${option.color}"` : '';
             const transitionText = option.transition ? `→ ${option.transition}` : '';
+            const clickableClass = option.transition ? '' : 'disabled';
             
             html += `
-                <div class="preview-option">
+                <div class="preview-option ${clickableClass}">
                     ${option.icon ? `<div class="preview-option-icon" title="${option.icon}"></div>` : ''}
                     <span class="preview-option-number">${index + 1})</span>
                     <span class="preview-option-text" ${colorStyle}>${processedOptionText}</span>
@@ -627,6 +686,10 @@ class DialogueEditor {
     }
 
     processTextForPreview(text) {
+        return this.processTextForDisplay(text);
+    }
+
+    processTextForDisplay(text) {
         if (!text) return '';
         
         // Заменяем \n на <br>
