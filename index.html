@@ -52,7 +52,14 @@
                 </div>
                 <div class="form-group">
                     <label>Текст NPC:</label>
-                    <textarea id="nodeText" class="form-control" rows="3" placeholder="Можно использовать \n для переноса строки и теги &lt;color&gt;"></textarea>
+                    <textarea id="nodeText" class="form-control" rows="3" placeholder="Можно использовать Enter для переноса строки и теги &lt;color&gt;"></textarea>
+                </div>
+                
+                <!-- Редактор опций для узла -->
+                <div class="node-options-editor">
+                    <h4>Опции игрока</h4>
+                    <div id="nodeOptionsList" class="options-list"></div>
+                    <button id="addNodeOptionBtn" class="btn-small">+ Добавить опцию</button>
                 </div>
             </div>
 
@@ -60,7 +67,7 @@
                 <h3>Опция игрока</h3>
                 <div class="form-group">
                     <label>Текст:</label>
-                    <input type="text" id="optionText" class="form-control">
+                    <textarea id="optionText" class="form-control" rows="2" placeholder="Можно использовать Enter для переноса строки"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Переход к:</label>
@@ -99,10 +106,7 @@
                 <h2>Предпросмотр диалога</h2>
                 <span class="close">&times;</span>
             </div>
-            <div id="previewContent" class="preview-content">
-                <div id="previewHistory" class="preview-history"></div>
-                <div id="previewCurrent" class="preview-current"></div>
-            </div>
+            <div id="previewContent" class="preview-content"></div>
         </div>
     </div>
 
