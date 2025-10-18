@@ -216,6 +216,11 @@ main {
     margin-bottom: 10px;
     line-height: 1.4;
     word-wrap: break-word;
+    white-space: pre-line;
+}
+
+.node-text-colored {
+    display: inline;
 }
 
 .option {
@@ -252,6 +257,11 @@ main {
 .option-text {
     flex: 1;
     font-size: 14px;
+    white-space: pre-line;
+}
+
+.option-text-colored {
+    display: inline;
 }
 
 .option-transition {
@@ -421,6 +431,32 @@ textarea.form-control {
     text-shadow: 1px 1px 2px #000;
     font-size: 14px;
     line-height: 1.4;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-history {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    max-height: 200px;
+    border-bottom: 1px solid #8b7355;
+    padding-bottom: 15px;
+}
+
+.preview-history-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(139, 115, 85, 0.1);
+    border-radius: 5px;
+    border: 1px solid #8b7355;
+    opacity: 0.7;
+    font-size: 13px;
+}
+
+.preview-current {
+    flex: 2;
 }
 
 .preview-profile {
@@ -470,6 +506,16 @@ textarea.form-control {
     transform: translateX(5px);
 }
 
+.preview-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.preview-option.disabled:hover {
+    background: rgba(139, 115, 85, 0.3);
+    transform: none;
+}
+
 .preview-option-icon {
     width: 16px;
     height: 16px;
@@ -488,6 +534,7 @@ textarea.form-control {
 
 .preview-option-text {
     flex: 1;
+    white-space: pre-line;
 }
 
 .preview-option-transition {
