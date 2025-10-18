@@ -20,7 +20,6 @@
 
     <main>
         <div class="workspace">
-            <!-- Панель инструментов -->
             <div class="toolbar">
                 <button id="addNodeBtn">+ Добавить диалог</button>
                 <button id="addOptionBtn">+ Добавить опцию</button>
@@ -31,16 +30,21 @@
                 <button id="fitToScreenBtn">По размеру</button>
             </div>
 
-            <!-- Холст для блок-схемы -->
             <div class="canvas-container">
-                <svg id="connectionLayer"></svg>
+                <svg id="connectionLayer">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3498db"/>
+                        </marker>
+                    </defs>
+                </svg>
                 <div id="nodeContainer" class="node-container"></div>
             </div>
         </div>
 
-        <!-- Редактор свойств -->
         <div class="properties-panel">
-            <div id="nodeProperties" class="properties-section" style="display: none;">
+            <div id="nodeProperties" class="properties-section">
                 <h3>Диалог NPC</h3>
                 <div class="form-group">
                     <label>ID профиля:</label>
@@ -70,7 +74,7 @@
                 </div>
                 <div class="form-group">
                     <label>Цвет:</label>
-                    <input type="color" id="optionColor" class="form-control">
+                    <input type="color" id="optionColor" class="form-control" value="#ffffff">
                 </div>
 
                 <div class="conditions-section">
@@ -89,19 +93,17 @@
     </main>
 
     <!-- Модальные окна -->
-    <div id="previewModal" class="modal">
+    <div id="previewModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Предпросмотр диалога</h2>
                 <span class="close">&times;</span>
             </div>
-            <div id="previewContent" class="preview-content">
-                <!-- Контент предпросмотра будет генерироваться здесь -->
-            </div>
+            <div id="previewContent" class="preview-content"></div>
         </div>
     </div>
 
-    <div id="conditionModal" class="modal">
+    <div id="conditionModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Добавить условие</h2>
@@ -115,7 +117,6 @@
                         <option value="NotHasItem">NotHasItem</option>
                         <option value="SkillMore">SkillMore</option>
                         <option value="QuestFinished">QuestFinished</option>
-                        <!-- Добавьте остальные условия по необходимости -->
                     </select>
                 </div>
                 <div id="conditionParams"></div>
@@ -124,7 +125,7 @@
         </div>
     </div>
 
-    <div id="commandModal" class="modal">
+    <div id="commandModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Добавить команду</h2>
@@ -138,7 +139,6 @@
                         <option value="RemoveItem">RemoveItem</option>
                         <option value="GiveQuest">GiveQuest</option>
                         <option value="FinishQuest">FinishQuest</option>
-                        <!-- Добавьте остальные команды по необходимости -->
                     </select>
                 </div>
                 <div id="commandParams"></div>
@@ -147,7 +147,6 @@
         </div>
     </div>
 
-    <!-- Скрытый input для импорта файлов -->
     <input type="file" id="fileInput" accept=".cfg" style="display: none;">
 
     <script src="script.js"></script>
