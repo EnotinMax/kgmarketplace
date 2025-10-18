@@ -1,77 +1,116 @@
-// Основные переменные приложения
+// Основной класс редактора диалогов
 class DialogueEditor {
     constructor() {
         this.nodes = new Map();
-        this.connections = new Map();
         this.selectedNode = null;
         this.selectedOption = null;
         this.currentZoom = 1;
-        this.isDragging = false;
-        this.dragOffset = { x: 0, y: 0 };
         this.canvasOffset = { x: 0, y: 0 };
         this.isCanvasDragging = false;
         this.canvasStartPos = { x: 0, y: 0 };
         
+        console.log('DialogueEditor инициализирован');
         this.initializeEventListeners();
         this.createSampleDialogue();
     }
 
     initializeEventListeners() {
-        // Кнопки управления
-        document.getElementById('addNodeBtn').addEventListener('click', () => this.addNode());
-        document.getElementById('addOptionBtn').addEventListener('click', () => this.addOption());
-        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
-        document.getElementById('previewBtn').addEventListener('click', () => this.showPreview());
-        document.getElementById('exportBtn').addEventListener('click', () => this.exportCfg());
-        document.getElementById('importBtn').addEventListener('click', () => this.importCfg());
-        document.getElementById('validateBtn').addEventListener('click', () => this.validateDialogue());
+        console.log('Инициализация обработчиков событий');
+        
+        // Основные кнопки
+        this.bindButton('addNodeBtn', () => this.addNode());
+        this.bindButton('addOptionBtn', () => this.addOption());
+        this.bindButton('deleteBtn', () => this.deleteSelected());
+        this.bindButton('previewBtn', () => this.showPreview());
+        this.bindButton('exportBtn', () => this.exportCfg());
+        this.bindButton('importBtn', () => document.getElementById('fileInput').click());
+        this.bindButton('validateBtn', () => this.validateDialogue());
         
         // Поиск
-        document.getElementById('searchInput').addEventListener('input', (e) => this.searchDialogue(e.target.value));
+        this.bindInput('searchInput', (e) => this.searchDialogue(e.target.value));
         
+        // Свойства узлов и опций
+        this.bindInput('nodeId', (e) => this.updateNodeProperty('id', e.target.value));
+        this.bindInput('nodeText', (e) => this.updateNodeProperty('text', e.target.value));
+        this.bindInput('optionText', (e) => this.updateOptionProperty('text', e.target.value));
+        this.bindInput('optionTransition', (e) => this.updateOptionProperty('transition', e.target.value));
+        this.bindInput('optionIcon', (e) => this.updateOptionProperty('icon', e.target.value));
+        this.bindInput('optionColor', (e) => this.updateOptionProperty('color', e.target.value));
+
+        // Условия и команды
+        this.bindButton('addConditionBtn', () => this.showConditionModal());
+        this.bindButton('addCommandBtn', () => this.showCommandModal());
+        this.bindButton('saveConditionBtn', () => this.saveCondition());
+        this.bindButton('saveCommandBtn', () => this.saveCommand());
+
         // Модальные окна
+        this.bindModalEvents();
+        
+        // Файловый input
+        this.bindInput('fileInput', (e) => this.handleFileImport(e));
+        
+        // Перетаскивание холста
+        this.bindCanvasEvents();
+        
+        // Масштабирование
+        this.bindButton('zoomInBtn', () => this.zoom(0.2));
+        this.bindButton('zoomOutBtn', () => this.zoom(-0.2));
+        this.bindButton('fitToScreenBtn', () => this.fitToScreen());
+        
+        // Типы условий и команд
+        this.bindInput('conditionType', () => this.updateConditionParams());
+        this.bindInput('commandType', () => this.updateCommandParams());
+        
+        console.log('Все обработчики инициализированы');
+    }
+
+    bindButton(id, handler) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', handler);
+        } else {
+            console.warn(`Элемент с id ${id} не найден`);
+        }
+    }
+
+    bindInput(id, handler) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', handler);
+        } else {
+            console.warn(`Элемент с id ${id} не найден`);
+        }
+    }
+
+    bindModalEvents() {
+        // Закрытие модальных окон
         document.querySelectorAll('.close').forEach(closeBtn => {
             closeBtn.addEventListener('click', (e) => {
                 e.target.closest('.modal').style.display = 'none';
             });
         });
 
-        // Закрытие модальных окон при клике вне их
+        // Закрытие при клике вне окна
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
             }
         });
+    }
 
-        // Обработчики для свойств
-        document.getElementById('nodeId').addEventListener('change', (e) => this.updateNodeProperty('id', e.target.value));
-        document.getElementById('nodeText').addEventListener('change', (e) => this.updateNodeProperty('text', e.target.value));
-        document.getElementById('optionText').addEventListener('change', (e) => this.updateOptionProperty('text', e.target.value));
-        document.getElementById('optionTransition').addEventListener('change', (e) => this.updateOptionProperty('transition', e.target.value));
-        document.getElementById('optionIcon').addEventListener('change', (e) => this.updateOptionProperty('icon', e.target.value));
-        document.getElementById('optionColor').addEventListener('change', (e) => this.updateOptionProperty('color', e.target.value));
-
-        // Условия и команды
-        document.getElementById('addConditionBtn').addEventListener('click', () => this.showConditionModal());
-        document.getElementById('addCommandBtn').addEventListener('click', () => this.showCommandModal());
-        document.getElementById('saveConditionBtn').addEventListener('click', () => this.saveCondition());
-        document.getElementById('saveCommandBtn').addEventListener('click', () => this.saveCommand());
-
-        // Перетаскивание холста
+    bindCanvasEvents() {
         const canvas = document.querySelector('.canvas-container');
+        if (!canvas) return;
+
         canvas.addEventListener('mousedown', (e) => this.startCanvasDrag(e));
         canvas.addEventListener('mousemove', (e) => this.canvasDrag(e));
         canvas.addEventListener('mouseup', () => this.stopCanvasDrag());
         canvas.addEventListener('mouseleave', () => this.stopCanvasDrag());
-
-        // Масштабирование
-        document.getElementById('zoomInBtn').addEventListener('click', () => this.zoom(0.1));
-        document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoom(-0.1));
-        document.getElementById('fitToScreenBtn').addEventListener('click', () => this.fitToScreen());
     }
 
     createSampleDialogue() {
-        // Создаем пример диалога для начала работы
+        console.log('Создание примерного диалога');
+        
         const startNode = this.addNode('default', 100, 100);
         startNode.text = "Welcome to the village!";
         
@@ -91,6 +130,8 @@ class DialogueEditor {
         
         this.renderNodes();
         this.updateTransitionsList();
+        
+        console.log('Примерный диалог создан');
     }
 
     addNode(id = null, x = 200, y = 200) {
@@ -111,7 +152,10 @@ class DialogueEditor {
 
     addOptionToNode(nodeId, text = "New option") {
         const node = this.nodes.get(nodeId);
-        if (!node) return null;
+        if (!node) {
+            console.error(`Узел с id ${nodeId} не найден`);
+            return null;
+        }
         
         const option = {
             id: `opt_${Date.now()}`,
@@ -120,7 +164,7 @@ class DialogueEditor {
             commands: [],
             conditions: [],
             icon: "",
-            color: ""
+            color: "#ffffff"
         };
         
         node.options.push(option);
@@ -130,16 +174,19 @@ class DialogueEditor {
 
     renderNodes() {
         const container = document.getElementById('nodeContainer');
-        container.innerHTML = '';
+        if (!container) {
+            console.error('Контейнер узлов не найден');
+            return;
+        }
         
-        // Очищаем соединения
-        document.getElementById('connectionLayer').innerHTML = '';
+        container.innerHTML = '';
+        document.getElementById('connectionLayer').innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3498db"/></marker></defs>';
         
         this.nodes.forEach((node, nodeId) => {
             const nodeElement = this.createNodeElement(node);
             container.appendChild(nodeElement);
             
-            // Рисуем соединения для опций
+            // Рисуем соединения
             node.options.forEach(option => {
                 if (option.transition && this.nodes.has(option.transition)) {
                     this.drawConnection(node, option);
@@ -160,13 +207,13 @@ class DialogueEditor {
         nodeDiv.setAttribute('data-node-id', node.id);
         
         nodeDiv.innerHTML = `
-            <div class="node-header">[${node.id}]</div>
+            <div class="node-header">[${this.escapeHtml(node.id)}]</div>
             <div class="node-content">${this.escapeHtml(node.text)}</div>
             <div class="node-options">
                 ${node.options.map((option, index) => `
                     <div class="option ${this.selectedOption === option.id ? 'selected' : ''}" 
                          data-option-id="${option.id}">
-                         ${option.icon ? `<span class="option-icon"></span>` : ''}
+                         ${option.icon ? `<span class="option-icon" title="${option.icon}"></span>` : ''}
                          ${index + 1}) ${this.escapeHtml(option.text)}
                          ${option.transition ? `→ [${option.transition}]` : ''}
                     </div>
@@ -174,7 +221,6 @@ class DialogueEditor {
             </div>
         `;
         
-        // Обработчики событий для узла
         this.addNodeEventListeners(nodeDiv, node);
         return nodeDiv;
     }
@@ -204,10 +250,13 @@ class DialogueEditor {
             initialX = node.x;
             initialY = node.y;
             
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            
             e.preventDefault();
         });
 
-        document.addEventListener('mousemove', (e) => {
+        const onMouseMove = (e) => {
             if (!isDragging) return;
             
             const dx = e.clientX - startX;
@@ -217,11 +266,13 @@ class DialogueEditor {
             node.y = initialY + dy;
             
             this.renderNodes();
-        });
+        };
 
-        document.addEventListener('mouseup', () => {
+        const onMouseUp = () => {
             isDragging = false;
-        });
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
     }
 
     drawConnection(fromNode, option) {
@@ -231,7 +282,6 @@ class DialogueEditor {
         const svg = document.getElementById('connectionLayer');
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         
-        // Вычисляем позиции соединений (упрощенно)
         const fromX = fromNode.x + 200;
         const fromY = fromNode.y + 100;
         const toX = toNode.x;
@@ -297,7 +347,6 @@ class DialogueEditor {
         if (!node) return;
         
         if (property === 'id') {
-            // Проверяем уникальность ID
             if (value && value !== node.id && !this.nodes.has(value)) {
                 this.nodes.delete(node.id);
                 node.id = value;
@@ -325,6 +374,8 @@ class DialogueEditor {
 
     updateTransitionsList() {
         const select = document.getElementById('optionTransition');
+        if (!select) return;
+        
         select.innerHTML = '<option value="">-- Нет --</option>';
         
         this.nodes.forEach((node, nodeId) => {
@@ -350,9 +401,10 @@ class DialogueEditor {
     updateConditionParams() {
         const type = document.getElementById('conditionType').value;
         const paramsContainer = document.getElementById('conditionParams');
+        if (!paramsContainer) return;
+        
         paramsContainer.innerHTML = '';
         
-        // Добавляем поля для параметров в зависимости от типа условия
         const paramTemplates = {
             'HasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
             'NotHasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
@@ -376,6 +428,8 @@ class DialogueEditor {
     updateCommandParams() {
         const type = document.getElementById('commandType').value;
         const paramsContainer = document.getElementById('commandParams');
+        if (!paramsContainer) return;
+        
         paramsContainer.innerHTML = '';
         
         const paramTemplates = {
@@ -432,6 +486,8 @@ class DialogueEditor {
 
     renderConditionsList(conditions) {
         const container = document.getElementById('conditionsList');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         conditions.forEach((condition, index) => {
@@ -447,6 +503,8 @@ class DialogueEditor {
 
     renderCommandsList(commands) {
         const container = document.getElementById('commandsList');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         commands.forEach((command, index) => {
@@ -483,30 +541,28 @@ class DialogueEditor {
     }
 
     showPreview() {
-        const modal = document.getElementById('previewModal');
-        const content = document.getElementById('previewContent');
-        
         if (!this.selectedNode) {
             alert('Выберите диалог для предпросмотра');
             return;
         }
+        
+        const modal = document.getElementById('previewModal');
+        const content = document.getElementById('previewContent');
         
         const startNode = this.nodes.get(this.selectedNode);
         content.innerHTML = this.generatePreview(startNode);
         modal.style.display = 'block';
     }
 
-    generatePreview(node, depth = 0) {
-        if (depth > 10) return '<div class="preview-error">Слишком глубокая вложенность</div>';
-        
+    generatePreview(node) {
         let html = `
-            <div class="preview-profile">[${node.id}]</div>
+            <div class="preview-profile">[${this.escapeHtml(node.id)}]</div>
             <div class="preview-npc-text">${this.escapeHtml(node.text)}</div>
             <div class="preview-options">
         `;
         
         node.options.forEach((option, index) => {
-            const colorStyle = option.color ? `style="color: ${option.color}"` : '';
+            const colorStyle = option.color && option.color !== '#ffffff' ? `style="color: ${option.color}"` : '';
             html += `
                 <div class="preview-option">
                     ${option.icon ? `<div class="option-icon" title="${option.icon}"></div>` : ''}
@@ -568,18 +624,18 @@ class DialogueEditor {
         this.downloadFile('dialogue.cfg', cfgContent);
     }
 
-    importCfg() {
-        document.getElementById('fileInput').click();
-        document.getElementById('fileInput').onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.parseCfgFile(event.target.result);
-            };
-            reader.readAsText(file);
+    handleFileImport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            this.parseCfgFile(event.target.result);
         };
+        reader.readAsText(file);
+        
+        // Сбрасываем значение input, чтобы можно было выбрать тот же файл снова
+        e.target.value = '';
     }
 
     parseCfgFile(content) {
@@ -591,15 +647,13 @@ class DialogueEditor {
             const line = lines[i].trim();
             
             if (line.startsWith('[') && line.endsWith(']')) {
-                // Новый узел
                 const nodeId = line.slice(1, -1);
                 currentNode = this.addNode(nodeId, Math.random() * 500, Math.random() * 300);
-                i++; // Переход к следующей строке (текст NPC)
+                i++;
                 if (i < lines.length) {
                     currentNode.text = lines[i].trim();
                 }
-            } else if (line.startsWith('Text:')) {
-                // Опция игрока
+            } else if (line.startsWith('Text:') && currentNode) {
                 this.parseOptionLine(currentNode, line);
             }
         }
@@ -609,14 +663,13 @@ class DialogueEditor {
     }
 
     parseOptionLine(node, line) {
-        if (!node) return;
-        
         const parts = line.split('|').map(part => part.trim());
         const textPart = parts.find(part => part.startsWith('Text:'));
         
         if (!textPart) return;
         
         const option = this.addOptionToNode(node.id, textPart.substring(5).trim());
+        if (!option) return;
         
         parts.forEach(part => {
             if (part.startsWith('Transition:')) {
@@ -653,17 +706,10 @@ class DialogueEditor {
         const errors = [];
         
         this.nodes.forEach((node, nodeId) => {
-            // Проверяем уникальность ID
-            if (!nodeId) {
-                errors.push(`Узел без ID`);
-            }
-            
-            // Проверяем текст NPC
             if (!node.text || node.text.trim() === '') {
                 errors.push(`Узел "${nodeId}": отсутствует текст NPC`);
             }
             
-            // Проверяем опции
             node.options.forEach((option, index) => {
                 if (!option.text || option.text.trim() === '') {
                     errors.push(`Узел "${nodeId}", опция ${index + 1}: отсутствует текст`);
@@ -712,7 +758,6 @@ class DialogueEditor {
                 document.getElementById('optionProperties').style.display = 'none';
             }
         } else if (this.selectedNode) {
-            // Удаляем все ссылки на этот узел
             this.nodes.forEach(otherNode => {
                 otherNode.options.forEach(option => {
                     if (option.transition === this.selectedNode) {
@@ -724,36 +769,8 @@ class DialogueEditor {
             this.nodes.delete(this.selectedNode);
             this.selectedNode = null;
             this.renderNodes();
-            document.getElementById('nodeProperties').style.display = 'none';
+            document.getElementById('nodeProperties').style.display = 'block';
         }
-    }
-
-    // Вспомогательные методы
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    hexToRgb(hex) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    }
-
-    downloadFile(filename, content) {
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
     }
 
     // Методы для перетаскивания холста
@@ -791,14 +808,46 @@ class DialogueEditor {
         this.canvasOffset = { x: 0, y: 0 };
         this.applyCanvasTransform();
     }
+
+    // Вспомогательные методы
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    downloadFile(filename, content) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 }
 
-// Инициализация приложения
+// Инициализация при загрузке страницы
 let editor;
+
 document.addEventListener('DOMContentLoaded', () => {
-    editor = new DialogueEditor();
-    
-    // Добавляем обработчики для модальных окон условий и команд
-    document.getElementById('conditionType').addEventListener('change', () => editor.updateConditionParams());
-    document.getElementById('commandType').addEventListener('change', () => editor.updateCommandParams());
+    console.log('DOM загружен, инициализация редактора...');
+    try {
+        editor = new DialogueEditor();
+        console.log('Редактор успешно инициализирован');
+    } catch (error) {
+        console.error('Ошибка инициализации редактора:', error);
+        alert('Произошла ошибка при инициализации редактора. Проверьте консоль для подробностей.');
+    }
 });
