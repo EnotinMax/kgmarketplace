@@ -1500,19 +1500,129 @@ class DialogueEditor {
         URL.revokeObjectURL(url);
     }
 
-    // Заглушки для методов квестов (будут реализованы позже)
-    showAddQuestTargetModal() {
-        alert('Добавление целей квеста будет реализовано в следующей версии');
+showAddQuestTargetModal() {
+    document.getElementById('questTargetModal').style.display = 'block';
+    // Сбросить значения
+    document.getElementById('targetPrefab').value = '';
+    document.getElementById('targetAmount').value = '1';
+    document.getElementById('targetLevel').value = '';
+}
+
+showAddQuestRewardModal() {
+    document.getElementById('questRewardModal').style.display = 'block';
+    // Сбросить значения
+    document.getElementById('rewardType').value = 'Item';
+    document.getElementById('rewardPrefab').value = '';
+    document.getElementById('rewardAmount').value = '1';
+    document.getElementById('rewardLevel').value = '';
+}
+
+showAddQuestRequirementModal() {
+    document.getElementById('questRequirementModal').style.display = 'block';
+    this.updateRequirementParams();
+}
+
+updateRequirementParams() {
+    const type = document.getElementById('requirementType').value;
+    const paramsContainer = document.getElementById('requirementParams');
+    paramsContainer.innerHTML = '';
+
+    const paramTemplates = {
+        'HasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
+        'NotHasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
+        'SkillMore': ['SkillName', 'MinLevel'],
+        'SkillLess': ['SkillName', 'MaxLevel'],
+        'QuestFinished': ['QuestName'],
+        'QuestNotFinished': ['QuestName'],
+        'HasQuest': ['QuestName'],
+        'NotHasQuest': ['QuestName'],
+        'GlobalKey': ['KeyName'],
+        'NotGlobalKey': ['KeyName']
+    };
+
+    const params = paramTemplates[type] || [];
+    params.forEach((paramName, index) => {
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `
+            <label>${paramName}:</label>
+            <input type="text" class="form-control requirement-param" 
+                   data-param-index="${index}" placeholder="${paramName}">
+        `;
+        paramsContainer.appendChild(div);
+    });
+}
+
+// Добавить в initializeEventListeners обработчики для новых модальных окон
+this.bindButton('saveQuestTargetBtn', () => this.saveQuestTarget());
+this.bindButton('saveQuestRewardBtn', () => this.saveQuestReward());
+this.bindButton('saveQuestRequirementBtn', () => this.saveQuestRequirement());
+this.bindInput('requirementType', () => this.updateRequirementParams());
+
+saveQuestTarget() {
+    const quest = this.quests.get(this.selectedQuest);
+    if (!quest) return;
+
+    const prefab = document.getElementById('targetPrefab').value.trim();
+    const amount = document.getElementById('targetAmount').value.trim();
+    const level = document.getElementById('targetLevel').value.trim();
+
+    if (!prefab) {
+        alert('Введите Prefab цели');
+        return;
     }
 
-    showAddQuestRewardModal() {
-        alert('Добавление наград квеста будет реализовано в следующей версии');
+    quest.targets.push({
+        prefab: prefab,
+        amount: amount || '1',
+        level: level
+    });
+
+    this.renderQuestEditor();
+    document.getElementById('questTargetModal').style.display = 'none';
+}
+
+saveQuestReward() {
+    const quest = this.quests.get(this.selectedQuest);
+    if (!quest) return;
+
+    const type = document.getElementById('rewardType').value;
+    const prefab = document.getElementById('rewardPrefab').value.trim();
+    const amount = document.getElementById('rewardAmount').value.trim();
+    const level = document.getElementById('rewardLevel').value.trim();
+
+    if (!prefab) {
+        alert('Введите Prefab/Название награды');
+        return;
     }
 
-    showAddQuestRequirementModal() {
-        alert('Добавление требований квеста будет реализовано в следующей версии');
-    }
+    quest.rewards.push({
+        type: type,
+        prefab: prefab,
+        amount: amount || '1',
+        level: level
+    });
 
+    this.renderQuestEditor();
+    document.getElementById('questRewardModal').style.display = 'none';
+}
+
+saveQuestRequirement() {
+    const quest = this.quests.get(this.selectedQuest);
+    if (!quest) return;
+
+    const type = document.getElementById('requirementType').value;
+    const paramInputs = document.querySelectorAll('.requirement-param');
+    const params = Array.from(paramInputs).map(input => input.value).filter(val => val);
+
+    quest.requirements.push({
+        type: type,
+        params: params
+    });
+
+    this.renderQuestEditor();
+    document.getElementById('questRequirementModal').style.display = 'none';
+}
     deleteQuestTarget(index) {
         const quest = this.quests.get(this.selectedQuest);
         if (quest) {
