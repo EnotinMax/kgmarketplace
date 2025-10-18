@@ -157,6 +157,7 @@ main {
     cursor: move;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .dialogue-node:hover {
@@ -184,7 +185,7 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    user-select: none;
+    background: rgba(0,0,0,0.2);
 }
 
 .collapse-btn {
@@ -192,15 +193,14 @@ main {
     border: none;
     color: #f1c40f;
     font-size: 16px;
-    font-weight: bold;
     cursor: pointer;
     padding: 2px 6px;
     border-radius: 3px;
-    transition: all 0.2s ease;
+    transition: background 0.2s;
 }
 
 .collapse-btn:hover {
-    background: rgba(241, 196, 15, 0.2);
+    background: rgba(255,255,255,0.1);
 }
 
 .node-content {
@@ -226,7 +226,8 @@ main {
     margin: 5px 0;
     cursor: pointer;
     transition: all 0.2s ease;
-    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .option:hover {
@@ -240,19 +241,23 @@ main {
 }
 
 .option-icon {
-    display: inline-block;
     width: 16px;
     height: 16px;
+    margin-right: 8px;
     background: #f1c40f;
     border-radius: 2px;
-    margin-right: 8px;
-    vertical-align: middle;
+    flex-shrink: 0;
 }
 
-.option-connection {
-    font-size: 11px;
+.option-text {
+    flex: 1;
+    font-size: 14px;
+}
+
+.option-transition {
+    font-size: 12px;
     color: #bdc3c7;
-    margin-top: 4px;
+    margin-left: 8px;
     font-style: italic;
 }
 
@@ -302,13 +307,6 @@ main {
 textarea.form-control {
     resize: vertical;
     min-height: 80px;
-}
-
-.help-text {
-    font-size: 12px;
-    color: #7f8c8d;
-    margin-top: 5px;
-    font-style: italic;
 }
 
 .conditions-section, .commands-section {
@@ -375,6 +373,11 @@ textarea.form-control {
     border: 2px solid #3498db;
 }
 
+.preview-modal {
+    width: 700px;
+    max-width: 95%;
+}
+
 .modal-header {
     padding: 20px;
     background: #2c3e50;
@@ -412,26 +415,30 @@ textarea.form-control {
     background: #1a1a1a;
     border: 3px solid #8b7355;
     border-radius: 10px;
-    padding: 20px;
+    padding: 25px;
     color: #e8d8a3;
     font-family: 'MedievalSharp', cursive;
     text-shadow: 1px 1px 2px #000;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .preview-profile {
     text-align: center;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #f1c40f;
     margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    padding: 8px;
+    border-bottom: 1px solid #8b7355;
 }
 
 .preview-npc-text {
     text-align: center;
-    font-size: 16px;
+    font-size: 14px;
+    line-height: 1.5;
     margin-bottom: 25px;
     padding: 15px;
     background: rgba(139, 115, 85, 0.2);
@@ -449,12 +456,13 @@ textarea.form-control {
 .preview-option {
     display: flex;
     align-items: center;
-    padding: 12px;
+    padding: 10px 12px;
     background: rgba(139, 115, 85, 0.3);
     border: 1px solid #8b7355;
     border-radius: 5px;
     transition: all 0.2s ease;
     cursor: pointer;
+    font-size: 13px;
 }
 
 .preview-option:hover {
@@ -462,7 +470,7 @@ textarea.form-control {
     transform: translateX(5px);
 }
 
-.option-icon {
+.preview-option-icon {
     width: 16px;
     height: 16px;
     margin-right: 10px;
@@ -471,14 +479,23 @@ textarea.form-control {
     flex-shrink: 0;
 }
 
-.option-number {
+.preview-option-number {
     color: #f39c12;
     margin-right: 8px;
     font-weight: bold;
+    min-width: 20px;
 }
 
-.option-text {
+.preview-option-text {
     flex: 1;
+}
+
+.preview-option-transition {
+    font-size: 11px;
+    color: #d4af37;
+    margin-left: 10px;
+    font-style: italic;
+    opacity: 0.8;
 }
 
 /* Адаптивность */
@@ -504,6 +521,10 @@ textarea.form-control {
         width: 95%;
         margin: 2% auto;
     }
+    
+    .preview-modal {
+        width: 95%;
+    }
 }
 
 /* Прокрутка */
@@ -522,4 +543,9 @@ textarea.form-control {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #2980b9;
+}
+
+/* Стили для цветного текста */
+.color-text {
+    display: inline;
 }
