@@ -131,31 +131,31 @@ class DialogueEditor {
         console.log('Создание примерного диалога');
         
         const startNode = this.addNode('default', 100, 100);
-        startNode.text = "Welcome to the village!\nHow can I help you today?";
+        startNode.text = "Эй, Викинг!\nТы что, псиьма не ждёшь?";
         
         const jobNode = this.addNode('JobOptions', 400, 100);
-        jobNode.text = "Available job options:";
+        jobNode.text = "Что я могу тебе предложить:";
         
         const shopNode = this.addNode('Shop', 400, 300);
-        shopNode.text = "Welcome to my shop!\nWhat can I get for you?";
+        shopNode.text = "И люблю я чяй на правильной травке!\nИ торговать уже в радость!";
         
         // Добавляем опции
-        this.addOptionToNode(startNode.id, "Hello there! What brings you to our peaceful village?");
-        this.addOptionToNode(startNode.id, "How can I assist you today?");
-        const workOption = this.addOptionToNode(startNode.id, "I'm looking for work");
+        this.addOptionToNode(startNode.id, "Говорящая рыба?");
+        this.addOptionToNode(startNode.id, "Ну нахер...");
+        const workOption = this.addOptionToNode(startNode.id, "До центра за сколько?");
         workOption.transition = jobNode.id;
         
-        const shopOption = this.addOptionToNode(startNode.id, "I want to browse your shop");
+        const shopOption = this.addOptionToNode(startNode.id, "Пусть шляпник подойдёт к телефону");
         shopOption.transition = shopNode.id;
         shopOption.color = "#ff9900";
         
-        this.addOptionToNode(jobNode.id, "We have various job opportunities available.\nWhat type of work are you interested in?");
-        const farmOption = this.addOptionToNode(jobNode.id, "Farming");
+        this.addOptionToNode(jobNode.id, "Лети, лети, лепесток,\n через запад и восток \n через север, через юг...\n Пусть меня отпустит!");
+        const farmOption = this.addOptionToNode(jobNode.id, "За 300 монет");
         farmOption.icon = "Hoe";
         farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
         
-        this.addOptionToNode(shopNode.id, "Show me your weapons");
-        this.addOptionToNode(shopNode.id, "I need some supplies\n<color=#ff6666>Special offer today!</color>");
+        this.addOptionToNode(shopNode.id, "Скинь плавник");
+        this.addOptionToNode(shopNode.id, "Нужно<color=#ff6666>больше яблок!</color>");
         
         this.renderNodes();
         this.updateTransitionsList();
@@ -170,8 +170,8 @@ class DialogueEditor {
         const quest = {
             id: 'MyTestQuest1',
             type: 'Kill',
-            name: 'This is my first quest!',
-            description: 'And this is my first quest description!',
+            name: 'Список покупок',
+            description: 'Надо бы сходит в магаз. Вот, что мне нужно купить:',
             targets: [
                 { prefab: 'Wolf', amount: '10', level: '' },
                 { prefab: 'Skeleton', amount: '5', level: '' }
@@ -196,7 +196,7 @@ class DialogueEditor {
         const nodeId = id || `node_${Date.now()}`;
         const node = {
             id: nodeId,
-            text: "Enter NPC text here...",
+            text: "это будет говорить NPC",
             x: x,
             y: y,
             options: [],
@@ -209,7 +209,7 @@ class DialogueEditor {
         return node;
     }
 
-    addOptionToNode(nodeId, text = "New option") {
+    addOptionToNode(nodeId, text = "Новая опция") {
         const node = this.nodes.get(nodeId);
         if (!node) {
             console.error(`Узел с id ${nodeId} не найден`);
@@ -238,7 +238,7 @@ class DialogueEditor {
             return;
         }
         
-        this.addOptionToNode(this.selectedNode, "New option");
+        this.addOptionToNode(this.selectedNode, "Новая опция");
     }
 
     addQuest() {
@@ -246,8 +246,8 @@ class DialogueEditor {
         const quest = {
             id: questId,
             type: 'Kill',
-            name: 'New Quest',
-            description: 'Quest description',
+            name: 'Новый квнст',
+            description: 'Описание квеста',
             targets: [],
             rewards: [],
             cooldown: '',
@@ -631,13 +631,13 @@ class DialogueEditor {
                     <div class="form-group">
                         <label>Тип квеста:</label>
                         <select class="form-control quest-type" onchange="editor.updateQuestProperty('type', this.value)">
-                            <option value="Kill" ${quest.type === 'Kill' ? 'selected' : ''}>Убийство</option>
-                            <option value="Collect" ${quest.type === 'Collect' ? 'selected' : ''}>Сбор</option>
-                            <option value="Harvest" ${quest.type === 'Harvest' ? 'selected' : ''}>Сбор ресурсов</option>
-                            <option value="Craft" ${quest.type === 'Craft' ? 'selected' : ''}>Крафт</option>
-                            <option value="Talk" ${quest.type === 'Talk' ? 'selected' : ''}>Разговор</option>
-                            <option value="Build" ${quest.type === 'Build' ? 'selected' : ''}>Строительство</option>
-                            <option value="Move" ${quest.type === 'Move' ? 'selected' : ''}>Перемещение</option>
+                            <option value="Kill" ${quest.type === 'Kill' ? 'selected' : ''}>Убить</option>
+                            <option value="Collect" ${quest.type === 'Collect' ? 'selected' : ''}>Собрать</option>
+                            <option value="Harvest" ${quest.type === 'Harvest' ? 'selected' : ''}>Принести</option>
+                            <option value="Craft" ${quest.type === 'Craft' ? 'selected' : ''}>Создать</option>
+                            <option value="Talk" ${quest.type === 'Talk' ? 'selected' : ''}>Поговорить с</option>
+                            <option value="Build" ${quest.type === 'Build' ? 'selected' : ''}>Посмтроить</option>
+                            <option value="Move" ${quest.type === 'Move' ? 'selected' : ''}>Переместить</option>
                         </select>
                     </div>
                     <div class="form-group">
