@@ -541,6 +541,18 @@ textarea.form-control {
     border-left: 3px solid #3498db;
 }
 
+.quest-preview-image {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.quest-preview-image img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 5px;
+    border: 1px solid #8b7355;
+}
+
 .quest-item:hover {
     background: #3a506b;
 }
