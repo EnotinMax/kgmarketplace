@@ -1,56 +1,160 @@
-<!-- В раздел properties-panel добавляем редактор опций -->
-<div class="properties-panel">
-    <div id="nodeProperties" class="properties-section">
-        <h3>Диалог NPC</h3>
-        <div class="form-group">
-            <label>ID профиля:</label>
-            <input type="text" id="nodeId" class="form-control">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valheim Dialogue Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Valheim Dialogue Editor</h1>
+        <div class="header-controls">
+            <input type="text" id="searchInput" placeholder="Поиск по диалогам...">
+            <button id="importBtn">Импорт .cfg</button>
+            <button id="exportBtn">Экспорт .cfg</button>
+            <button id="validateBtn">Проверить</button>
+            <button id="previewBtn" class="play-btn">▶</button>
         </div>
-        <div class="form-group">
-            <label>Текст NPC:</label>
-            <textarea id="nodeText" class="form-control" rows="3" placeholder="Можно использовать \n для переноса строки и теги &lt;color&gt;"></textarea>
+    </header>
+
+    <main>
+        <div class="workspace">
+            <div class="toolbar">
+                <button id="addNodeBtn">+ Добавить диалог</button>
+                <button id="addOptionBtn">+ Добавить опцию</button>
+                <button id="deleteBtn">Удалить</button>
+                <div class="tool-separator"></div>
+                <button id="zoomInBtn">+</button>
+                <button id="zoomOutBtn">-</button>
+                <button id="fitToScreenBtn">По размеру</button>
+            </div>
+
+            <div class="canvas-container">
+                <svg id="connectionLayer">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3498db"/>
+                        </marker>
+                    </defs>
+                </svg>
+                <div id="nodeContainer" class="node-container"></div>
+            </div>
         </div>
-        
-        <!-- Новый раздел для редактирования опций -->
-        <div class="node-options-editor">
-            <h4>Опции диалога</h4>
-            <div id="nodeOptionsList"></div>
-            <button id="addNodeOptionBtn" class="add-option-btn">+ Добавить опцию</button>
+
+        <div class="properties-panel">
+            <div id="nodeProperties" class="properties-section">
+                <h3>Диалог NPC</h3>
+                <div class="form-group">
+                    <label>ID профиля:</label>
+                    <input type="text" id="nodeId" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Текст NPC:</label>
+                    <textarea id="nodeText" class="form-control" rows="3" placeholder="Можно использовать \n для переноса строки и теги &lt;color&gt;"></textarea>
+                </div>
+                
+                <div class="node-options-section">
+                    <h4>Опции диалога</h4>
+                    <div id="nodeOptionsList" class="options-list"></div>
+                    <button id="addNodeOptionBtn" class="btn-small">+ Добавить опцию</button>
+                </div>
+            </div>
+
+            <div id="optionProperties" class="properties-section" style="display: none;">
+                <h3>Опция игрока</h3>
+                <div class="form-group">
+                    <label>Текст:</label>
+                    <input type="text" id="optionText" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Переход к:</label>
+                    <select id="optionTransition" class="form-control">
+                        <option value="">-- Нет --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Иконка:</label>
+                    <input type="text" id="optionIcon" class="form-control" placeholder="Hammer, SwordIron, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Цвет:</label>
+                    <input type="color" id="optionColor" class="form-control" value="#ffffff">
+                </div>
+
+                <div class="conditions-section">
+                    <h4>Условия</h4>
+                    <div id="conditionsList"></div>
+                    <button id="addConditionBtn" class="btn-small">+ Добавить условие</button>
+                </div>
+
+                <div class="commands-section">
+                    <h4>Команды</h4>
+                    <div id="commandsList"></div>
+                    <button id="addCommandBtn" class="btn-small">+ Добавить команду</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div id="previewModal" class="modal" style="display: none;">
+        <div class="modal-content preview-modal">
+            <div class="modal-header">
+                <h2>Предпросмотр диалога</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="previewContent" class="preview-content"></div>
         </div>
     </div>
 
-    <div id="optionProperties" class="properties-section" style="display: none;">
-        <!-- Существующая панель редактирования отдельной опции -->
-        <h3>Опция игрока</h3>
-        <div class="form-group">
-            <label>Текст:</label>
-            <input type="text" id="optionText" class="form-control">
-        </div>
-        <div class="form-group">
-            <label>Переход к:</label>
-            <select id="optionTransition" class="form-control">
-                <option value="">-- Нет --</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Иконка:</label>
-            <input type="text" id="optionIcon" class="form-control" placeholder="Hammer, SwordIron, etc.">
-        </div>
-        <div class="form-group">
-            <label>Цвет:</label>
-            <input type="color" id="optionColor" class="form-control" value="#ffffff">
-        </div>
-
-        <div class="conditions-section">
-            <h4>Условия</h4>
-            <div id="conditionsList"></div>
-            <button id="addConditionBtn" class="btn-small">+ Добавить условие</button>
-        </div>
-
-        <div class="commands-section">
-            <h4>Команды</h4>
-            <div id="commandsList"></div>
-            <button id="addCommandBtn" class="btn-small">+ Добавить команду</button>
+    <div id="conditionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить условие</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Тип условия:</label>
+                    <select id="conditionType" class="form-control">
+                        <option value="HasItem">HasItem</option>
+                        <option value="NotHasItem">NotHasItem</option>
+                        <option value="SkillMore">SkillMore</option>
+                        <option value="QuestFinished">QuestFinished</option>
+                    </select>
+                </div>
+                <div id="conditionParams"></div>
+                <button id="saveConditionBtn">Сохранить</button>
+            </div>
         </div>
     </div>
-</div>
+
+    <div id="commandModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить команду</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Тип команды:</label>
+                    <select id="commandType" class="form-control">
+                        <option value="GiveItem">GiveItem</option>
+                        <option value="RemoveItem">RemoveItem</option>
+                        <option value="GiveQuest">GiveQuest</option>
+                        <option value="FinishQuest">FinishQuest</option>
+                    </select>
+                </div>
+                <div id="commandParams"></div>
+                <button id="saveCommandBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".cfg" style="display: none;">
+
+    <script src="script.js"></script>
+</body>
+</html>
