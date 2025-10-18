@@ -189,6 +189,91 @@
                 <button id="saveCommandBtn">Сохранить</button>
             </div>
         </div>
+            <!-- Модальные окна для квестов -->
+    <div id="questTargetModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить цель квеста</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Prefab объекта:</label>
+                    <input type="text" id="targetPrefab" class="form-control" placeholder="Wolf, SwordIron, Pickable_Carrot">
+                </div>
+                <div class="form-group">
+                    <label>Количество:</label>
+                    <input type="number" id="targetAmount" class="form-control" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Минимальный уровень (опционально):</label>
+                    <input type="number" id="targetLevel" class="form-control" placeholder="Только для Kill и Collect квестов">
+                </div>
+                <button id="saveQuestTargetBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="questRewardModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить награду квеста</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Тип награды:</label>
+                    <select id="rewardType" class="form-control">
+                        <option value="Item">Item</option>
+                        <option value="Skill">Skill</option>
+                        <option value="Pet">Pet</option>
+                        <option value="Skill_EXP">Skill_EXP</option>
+                        <option value="EpicMMO_EXP">EpicMMO_EXP</option>
+                        <option value="SetCustomValue">SetCustomValue</option>
+                        <option value="AddCustomValue">AddCustomValue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prefab или название:</label>
+                    <input type="text" id="rewardPrefab" class="form-control" placeholder="SwordIron, Run, Wolf">
+                </div>
+                <div class="form-group">
+                    <label>Количество:</label>
+                    <input type="number" id="rewardAmount" class="form-control" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Уровень (опционально):</label>
+                    <input type="number" id="rewardLevel" class="form-control" placeholder="Для предметов и питомцев">
+                </div>
+                <button id="saveQuestRewardBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="questRequirementModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить требование квеста</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Тип требования:</label>
+                    <select id="questRequirementType" class="form-control">
+                        <option value="HasItem">HasItem</option>
+                        <option value="NotHasItem">NotHasItem</option>
+                        <option value="SkillMore">SkillMore</option>
+                        <option value="QuestFinished">QuestFinished</option>
+                        <option value="QuestNotFinished">QuestNotFinished</option>
+                        <option value="HasQuest">HasQuest</option>
+                        <option value="NotHasQuest">NotHasQuest</option>
+                    </select>
+                </div>
+                <div id="questRequirementParams"></div>
+                <button id="saveQuestRequirementBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- Скрытые inputs для импорта файлов -->
