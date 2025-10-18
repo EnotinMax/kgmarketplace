@@ -115,7 +115,10 @@ class DialogueEditor {
         startNode.text = "Welcome to the village!\nHow can I help you today?";
         
         const jobNode = this.addNode('JobOptions', 400, 100);
-        jobNode.text = "Available job options:\nWhat are you interested in?";
+        jobNode.text = "Available job options:";
+        
+        const shopNode = this.addNode('Shop', 400, 300);
+        shopNode.text = "Welcome to my shop!";
         
         // Добавляем опции
         this.addOptionToNode(startNode.id, "Hello there! What brings you to our peaceful village?");
@@ -123,10 +126,17 @@ class DialogueEditor {
         const workOption = this.addOptionToNode(startNode.id, "I'm looking for work");
         workOption.transition = jobNode.id;
         
+        const shopOption = this.addOptionToNode(startNode.id, "I want to browse your shop");
+        shopOption.transition = shopNode.id;
+        shopOption.color = "#ff9900";
+        
         this.addOptionToNode(jobNode.id, "We have various job opportunities available. What type of work are you interested in?");
         const farmOption = this.addOptionToNode(jobNode.id, "Farming");
         farmOption.icon = "Hoe";
         farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
+        
+        this.addOptionToNode(shopNode.id, "Show me your weapons");
+        this.addOptionToNode(shopNode.id, "I need some supplies");
         
         this.renderNodes();
         this.updateTransitionsList();
@@ -210,95 +220,57 @@ class DialogueEditor {
         nodeDiv.style.top = `${node.y}px`;
         nodeDiv.setAttribute('data-node-id', node.id);
         
-        // Создаем содержимое узла
-        const header = document.createElement('div');
-        header.className = 'node-header';
+        const optionsHtml = node.options.map((option, index) => {
+            const transitionText = option.transition ? `→ ${option.transition}` : '';
+            return `
+                <div class="option ${this.selectedOption === option.id ? 'selected' : ''}" 
+                     data-option-id="${option.id}">
+                     ${option.icon ? `<span class="option-icon" title="${option.icon}"></span>` : ''}
+                     <span class="option-text">${index + 1}) ${this.escapeHtml(option.text)}</span>
+                     ${transitionText ? `<span class="option-transition">${transitionText}</span>` : ''}
+                </div>
+            `;
+        }).join('');
         
-        const collapseBtn = document.createElement('button');
-        collapseBtn.className = 'collapse-btn';
-        collapseBtn.textContent = node.collapsed ? '+' : '−';
-        collapseBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleNodeCollapse(node.id);
-        });
-        
-        const title = document.createElement('span');
-        title.textContent = `[${this.escapeHtml(node.id)}]`;
-        
-        header.appendChild(collapseBtn);
-        header.appendChild(title);
-        
-        const content = document.createElement('div');
-        content.className = 'node-content';
-        
-        if (!node.collapsed) {
-            const textDiv = document.createElement('div');
-            textDiv.className = 'node-text';
-            textDiv.textContent = node.text;
-            
-            const optionsDiv = document.createElement('div');
-            optionsDiv.className = 'node-options';
-            
-            node.options.forEach((option, index) => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'option';
-                if (this.selectedOption === option.id) {
-                    optionDiv.classList.add('selected');
-                }
-                optionDiv.setAttribute('data-option-id', option.id);
-                
-                let optionHTML = '';
-                if (option.icon) {
-                    optionHTML += `<span class="option-icon" title="${option.icon}"></span>`;
-                }
-                optionHTML += `${index + 1}) ${this.escapeHtml(option.text)}`;
-                
-                optionDiv.innerHTML = optionHTML;
-                
-                // Добавляем информацию о соединении
-                if (option.transition) {
-                    const connectionDiv = document.createElement('div');
-                    connectionDiv.className = 'option-connection';
-                    connectionDiv.textContent = `→ ведет к [${option.transition}]`;
-                    optionDiv.appendChild(connectionDiv);
-                }
-                
-                optionsDiv.appendChild(optionDiv);
-            });
-            
-            content.appendChild(textDiv);
-            content.appendChild(optionsDiv);
-        }
-        
-        nodeDiv.appendChild(header);
-        nodeDiv.appendChild(content);
+        nodeDiv.innerHTML = `
+            <div class="node-header">
+                <span>[${this.escapeHtml(node.id)}]</span>
+                <button class="collapse-btn" data-node-id="${node.id}">
+                    ${node.collapsed ? '+' : '−'}
+                </button>
+            </div>
+            <div class="node-content">
+                <div class="node-text">${this.escapeHtml(node.text)}</div>
+                <div class="node-options">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
         
         this.addNodeEventListeners(nodeDiv, node);
         return nodeDiv;
     }
 
-    toggleNodeCollapse(nodeId) {
-        const node = this.nodes.get(nodeId);
-        if (node) {
-            node.collapsed = !node.collapsed;
-            this.renderNodes();
-        }
-    }
-
     addNodeEventListeners(nodeElement, node) {
         // Выбор узла
         nodeElement.addEventListener('click', (e) => {
-            if (e.target.classList.contains('option') || e.target.classList.contains('option-icon')) {
-                const optionElement = e.target.closest('.option');
-                if (optionElement) {
-                    const optionId = optionElement.getAttribute('data-option-id');
-                    this.selectOption(node.id, optionId);
-                }
+            if (e.target.classList.contains('option')) {
+                const optionId = e.target.getAttribute('data-option-id');
+                this.selectOption(node.id, optionId);
             } else if (!e.target.classList.contains('collapse-btn')) {
                 this.selectNode(node.id);
             }
             e.stopPropagation();
         });
+
+        // Кнопка сворачивания
+        const collapseBtn = nodeElement.querySelector('.collapse-btn');
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleNodeCollapse(node.id);
+            });
+        }
 
         // Перетаскивание узла
         let isDragging = false;
@@ -336,6 +308,14 @@ class DialogueEditor {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         };
+    }
+
+    toggleNodeCollapse(nodeId) {
+        const node = this.nodes.get(nodeId);
+        if (node) {
+            node.collapsed = !node.collapsed;
+            this.renderNodes();
+        }
     }
 
     drawConnection(fromNode, option) {
@@ -619,7 +599,7 @@ class DialogueEditor {
 
     generatePreview(node) {
         // Обрабатываем переносы строк и теги цвета
-        const processedText = this.processTextTags(node.text);
+        const processedText = this.processTextForPreview(node.text);
         
         let html = `
             <div class="preview-profile">[${this.escapeHtml(node.id)}]</div>
@@ -628,14 +608,16 @@ class DialogueEditor {
         `;
         
         node.options.forEach((option, index) => {
-            const processedOptionText = this.processTextTags(option.text);
+            const processedOptionText = this.processTextForPreview(option.text);
             const colorStyle = option.color && option.color !== '#ffffff' ? `style="color: ${option.color}"` : '';
+            const transitionText = option.transition ? `→ ${option.transition}` : '';
             
             html += `
                 <div class="preview-option">
-                    ${option.icon ? `<div class="option-icon" title="${option.icon}"></div>` : ''}
-                    <span class="option-number">${index + 1})</span>
-                    <span class="option-text" ${colorStyle}>${processedOptionText}</span>
+                    ${option.icon ? `<div class="preview-option-icon" title="${option.icon}"></div>` : ''}
+                    <span class="preview-option-number">${index + 1})</span>
+                    <span class="preview-option-text" ${colorStyle}>${processedOptionText}</span>
+                    ${transitionText ? `<span class="preview-option-transition">${transitionText}</span>` : ''}
                 </div>
             `;
         });
@@ -644,17 +626,19 @@ class DialogueEditor {
         return html;
     }
 
-    processTextTags(text) {
+    processTextForPreview(text) {
         if (!text) return '';
         
         // Заменяем \n на <br>
-        let processed = text.replace(/\\n/g, '<br>');
+        let processed = text.replace(/\n/g, '<br>');
         
-        // Обрабатываем теги цвета <color=r,g,b>текст</color>
-        processed = processed.replace(/<color=(\d+),(\d+),(\d+)>(.*?)<\/color>/g, 
-            (match, r, g, b, content) => {
-                return `<span style="color: rgb(${r}, ${g}, ${b})">${content}</span>`;
-            });
+        // Обрабатываем теги <color>
+        processed = processed.replace(/<color=([^>]+)>([^<]*)<\/color>/g, 
+            '<span style="color: $1">$2</span>');
+        
+        // Также поддерживаем формат <color=#hex>text</color>
+        processed = processed.replace(/<color=#([0-9a-fA-F]{6})>([^<]*)<\/color>/g,
+            '<span style="color: #$1">$2</span>');
         
         return processed;
     }
