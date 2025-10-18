@@ -1,704 +1,804 @@
-// Global state
-let nodes = {};
-let edges = [];
-let selectedNodeId = null;
-let nextNodeId = 1;
-let previewHistory = [];
-let searchTerm = '';
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    loadFromStorage();
-    renderCanvas();
-    setupEventListeners();
-    validateGraph();
-});
-
-// Event Listeners
-function setupEventListeners() {
-    // File import
-    document.getElementById('importFile').addEventListener('change', handleFileImport);
-    
-    // Canvas click to deselect
-    document.getElementById('canvas').addEventListener('click', function(e) {
-        if (e.target === this) {
-            selectedNodeId = null;
-            hidePropertiesPanel();
-        }
-    });
-}
-
-// Drag and Drop
-function dragStart(e) {
-    e.dataTransfer.setData('text/plain', e.target.getAttribute('data-type'));
-}
-
-function dragOver(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
-}
-
-function dragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
-}
-
-function drop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
-    
-    const type = e.dataTransfer.getData('text/plain');
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    if (type === 'dialog') {
-        createDialogNode(x, y);
-    }
-}
-
-// Node Management
-function createDialogNode(x, y, id = null, npcText = '', options = []) {
-    const nodeId = id || `node_${nextNodeId++}`;
-    
-    nodes[nodeId] = {
-        id: nodeId,
-        npcText: npcText,
-        options: options,
-        x: x,
-        y: y
-    };
-    
-    saveToStorage();
-    renderCanvas();
-    validateGraph();
-    return nodeId;
-}
-
-function deleteNode(nodeId) {
-    // Remove node
-    delete nodes[nodeId];
-    
-    // Remove connected edges
-    edges = edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId);
-    
-    // Remove from options transitions
-    Object.values(nodes).forEach(node => {
-        node.options = node.options.filter(opt => opt.transition !== nodeId);
-    });
-    
-    if (selectedNodeId === nodeId) {
-        selectedNodeId = null;
-        hidePropertiesPanel();
-    }
-    
-    saveToStorage();
-    renderCanvas();
-    validateGraph();
-}
-
-// Rendering
-function renderCanvas() {
-    const canvas = document.getElementById('canvas');
-    canvas.innerHTML = '';
-    
-    // Render connections first (so they appear behind nodes)
-    renderConnections();
-    
-    // Render nodes
-    Object.values(nodes).forEach(node => {
-        const nodeElement = createNodeElement(node);
-        canvas.appendChild(nodeElement);
-    });
-    
-    // Highlight search results
-    if (searchTerm) {
-        highlightSearchResults();
-    }
-}
-
-function createNodeElement(node) {
-    const nodeDiv = document.createElement('div');
-    nodeDiv.className = `dialog-node ${selectedNodeId === node.id ? 'selected' : ''}`;
-    nodeDiv.style.left = node.x + 'px';
-    nodeDiv.style.top = node.y + 'px';
-    nodeDiv.setAttribute('data-node-id', node.id);
-    
-    nodeDiv.innerHTML = `
-        <div class="node-header">
-            <span class="node-id">${node.id}</span>
-            <button class="node-delete" onclick="deleteNode('${node.id}')">×</button>
-        </div>
-        <textarea class="npc-text-area" placeholder="Текст NPC..." 
-                  oninput="updateNodeText('${node.id}', this.value)">${escapeHtml(node.npcText)}</textarea>
-        <div class="options-list">
-            ${node.options.map((opt, index) => `
-                <div class="option-item" onclick="editOption('${node.id}', ${index})">
-                    ${opt.text || 'Новая опция'}
-                </div>
-            `).join('')}
-            <div class="add-option" onclick="addOption('${node.id}')">+ Добавить опцию</div>
-        </div>
-    `;
-    
-    // Make node draggable
-    makeDraggable(nodeDiv, node.id);
-    
-    // Add click handler
-    nodeDiv.addEventListener('click', function(e) {
-        if (!e.target.classList.contains('node-delete')) {
-            selectedNodeId = node.id;
-            showPropertiesPanel(node);
-            renderCanvas(); // Re-render to update selection
-        }
-    });
-    
-    return nodeDiv;
-}
-
-function makeDraggable(element, nodeId) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    
-    element.onmousedown = dragMouseDown;
-    
-    function dragMouseDown(e) {
-        e.preventDefault();
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        document.onmousemove = elementDrag;
-    }
-    
-    function elementDrag(e) {
-        e.preventDefault();
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
+// Основные переменные приложения
+class DialogueEditor {
+    constructor() {
+        this.nodes = new Map();
+        this.connections = new Map();
+        this.selectedNode = null;
+        this.selectedOption = null;
+        this.currentZoom = 1;
+        this.isDragging = false;
+        this.dragOffset = { x: 0, y: 0 };
+        this.canvasOffset = { x: 0, y: 0 };
+        this.isCanvasDragging = false;
+        this.canvasStartPos = { x: 0, y: 0 };
         
-        const newX = element.offsetLeft - pos1;
-        const newY = element.offsetTop - pos2;
-        
-        element.style.left = newX + "px";
-        element.style.top = newY + "px";
-        
-        // Update node position
-        nodes[nodeId].x = newX;
-        nodes[nodeId].y = newY;
-        
-        renderConnections();
+        this.initializeEventListeners();
+        this.createSampleDialogue();
     }
-    
-    function closeDragElement() {
-        document.onmouseup = null;
-        document.onmousemove = null;
-        saveToStorage();
-    }
-}
 
-function renderConnections() {
-    const canvas = document.getElementById('canvas');
-    
-    // Remove existing connections
-    document.querySelectorAll('.connection').forEach(el => el.remove());
-    
-    // Create arrowhead definition
-    const svgNS = "http://www.w3.org/2000/svg";
-    let defs = document.getElementById('connection-defs');
-    if (!defs) {
-        defs = document.createElementNS(svgNS, 'svg');
-        defs.style.position = 'absolute';
-        defs.style.width = '0';
-        defs.style.height = '0';
-        defs.id = 'connection-defs';
-        defs.innerHTML = `
-            <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                        refX="9" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill="#8b7355"/>
-                </marker>
-            </defs>
-        `;
-        canvas.appendChild(defs);
-    }
-    
-    // Create connections
-    edges.forEach(edge => {
-        const sourceNode = nodes[edge.source];
-        const targetNode = nodes[edge.target];
+    initializeEventListeners() {
+        // Кнопки управления
+        document.getElementById('addNodeBtn').addEventListener('click', () => this.addNode());
+        document.getElementById('addOptionBtn').addEventListener('click', () => this.addOption());
+        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
+        document.getElementById('previewBtn').addEventListener('click', () => this.showPreview());
+        document.getElementById('exportBtn').addEventListener('click', () => this.exportCfg());
+        document.getElementById('importBtn').addEventListener('click', () => this.importCfg());
+        document.getElementById('validateBtn').addEventListener('click', () => this.validateDialogue());
         
-        if (sourceNode && targetNode) {
-            const svg = document.createElementNS(svgNS, 'svg');
-            svg.className = 'connection';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.pointerEvents = 'none';
+        // Поиск
+        document.getElementById('searchInput').addEventListener('input', (e) => this.searchDialogue(e.target.value));
+        
+        // Модальные окна
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', (e) => {
+                e.target.closest('.modal').style.display = 'none';
+            });
+        });
+
+        // Закрытие модальных окон при клике вне их
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        // Обработчики для свойств
+        document.getElementById('nodeId').addEventListener('change', (e) => this.updateNodeProperty('id', e.target.value));
+        document.getElementById('nodeText').addEventListener('change', (e) => this.updateNodeProperty('text', e.target.value));
+        document.getElementById('optionText').addEventListener('change', (e) => this.updateOptionProperty('text', e.target.value));
+        document.getElementById('optionTransition').addEventListener('change', (e) => this.updateOptionProperty('transition', e.target.value));
+        document.getElementById('optionIcon').addEventListener('change', (e) => this.updateOptionProperty('icon', e.target.value));
+        document.getElementById('optionColor').addEventListener('change', (e) => this.updateOptionProperty('color', e.target.value));
+
+        // Условия и команды
+        document.getElementById('addConditionBtn').addEventListener('click', () => this.showConditionModal());
+        document.getElementById('addCommandBtn').addEventListener('click', () => this.showCommandModal());
+        document.getElementById('saveConditionBtn').addEventListener('click', () => this.saveCondition());
+        document.getElementById('saveCommandBtn').addEventListener('click', () => this.saveCommand());
+
+        // Перетаскивание холста
+        const canvas = document.querySelector('.canvas-container');
+        canvas.addEventListener('mousedown', (e) => this.startCanvasDrag(e));
+        canvas.addEventListener('mousemove', (e) => this.canvasDrag(e));
+        canvas.addEventListener('mouseup', () => this.stopCanvasDrag());
+        canvas.addEventListener('mouseleave', () => this.stopCanvasDrag());
+
+        // Масштабирование
+        document.getElementById('zoomInBtn').addEventListener('click', () => this.zoom(0.1));
+        document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoom(-0.1));
+        document.getElementById('fitToScreenBtn').addEventListener('click', () => this.fitToScreen());
+    }
+
+    createSampleDialogue() {
+        // Создаем пример диалога для начала работы
+        const startNode = this.addNode('default', 100, 100);
+        startNode.text = "Welcome to the village!";
+        
+        const jobNode = this.addNode('JobOptions', 400, 100);
+        jobNode.text = "Available job options:";
+        
+        // Добавляем опции
+        this.addOptionToNode(startNode.id, "Hello there! What brings you to our peaceful village?");
+        this.addOptionToNode(startNode.id, "How can I assist you today?");
+        const workOption = this.addOptionToNode(startNode.id, "I'm looking for work");
+        workOption.transition = jobNode.id;
+        
+        this.addOptionToNode(jobNode.id, "We have various job opportunities available. What type of work are you interested in?");
+        const farmOption = this.addOptionToNode(jobNode.id, "Farming");
+        farmOption.icon = "Hoe";
+        farmOption.conditions.push({ type: "HasItem", params: ["Hoe", "1"] });
+        
+        this.renderNodes();
+        this.updateTransitionsList();
+    }
+
+    addNode(id = null, x = 200, y = 200) {
+        const nodeId = id || `node_${Date.now()}`;
+        const node = {
+            id: nodeId,
+            text: "Enter NPC text here...",
+            x: x,
+            y: y,
+            options: []
+        };
+        
+        this.nodes.set(nodeId, node);
+        this.renderNodes();
+        this.updateTransitionsList();
+        return node;
+    }
+
+    addOptionToNode(nodeId, text = "New option") {
+        const node = this.nodes.get(nodeId);
+        if (!node) return null;
+        
+        const option = {
+            id: `opt_${Date.now()}`,
+            text: text,
+            transition: "",
+            commands: [],
+            conditions: [],
+            icon: "",
+            color: ""
+        };
+        
+        node.options.push(option);
+        this.renderNodes();
+        return option;
+    }
+
+    renderNodes() {
+        const container = document.getElementById('nodeContainer');
+        container.innerHTML = '';
+        
+        // Очищаем соединения
+        document.getElementById('connectionLayer').innerHTML = '';
+        
+        this.nodes.forEach((node, nodeId) => {
+            const nodeElement = this.createNodeElement(node);
+            container.appendChild(nodeElement);
             
-            const line = document.createElementNS(svgNS, 'line');
-            line.setAttribute('x1', sourceNode.x + 150);
-            line.setAttribute('y1', sourceNode.y + 100);
-            line.setAttribute('x2', targetNode.x + 150);
-            line.setAttribute('y2', targetNode.y + 100);
-            line.setAttribute('stroke', '#8b7355');
-            line.setAttribute('stroke-width', '2');
-            line.setAttribute('marker-end', 'url(#arrowhead)');
-            
-            svg.appendChild(line);
-            canvas.appendChild(svg);
-        }
-    });
-}
+            // Рисуем соединения для опций
+            node.options.forEach(option => {
+                if (option.transition && this.nodes.has(option.transition)) {
+                    this.drawConnection(node, option);
+                }
+            });
+        });
+    }
 
-// Properties Panel
-function showPropertiesPanel(node) {
-    const panel = document.getElementById('propertiesPanel');
-    const content = document.getElementById('propertiesContent');
-    
-    content.innerHTML = `
-        <div class="property-group">
-            <label>ID узла:</label>
-            <input type="text" value="${node.id}" onchange="updateNodeId('${node.id}', this.value)">
-        </div>
-        <div class="property-group">
-            <label>Текст NPC:</label>
-            <textarea oninput="updateNodeText('${node.id}', this.value)">${node.npcText}</textarea>
-        </div>
-        <h4>Опции игрока</h4>
-        ${node.options.map((opt, index) => `
-            <div class="property-group">
-                <label>Опция ${index + 1}:</label>
-                <input type="text" value="${opt.text || ''}" 
-                       placeholder="Текст опции..."
-                       oninput="updateOptionText('${node.id}', ${index}, this.value)">
-                <select onchange="updateOptionTransition('${node.id}', ${index}, this.value)">
-                    <option value="">-- Переход --</option>
-                    ${Object.keys(nodes).filter(id => id !== node.id).map(id => `
-                        <option value="${id}" ${opt.transition === id ? 'selected' : ''}>${id}</option>
-                    `).join('')}
-                </select>
-                <button class="remove-btn" onclick="removeOption('${node.id}', ${index})">×</button>
+    createNodeElement(node) {
+        const nodeDiv = document.createElement('div');
+        nodeDiv.className = 'dialogue-node';
+        if (this.selectedNode === node.id) {
+            nodeDiv.classList.add('selected');
+        }
+        
+        nodeDiv.style.left = `${node.x}px`;
+        nodeDiv.style.top = `${node.y}px`;
+        nodeDiv.setAttribute('data-node-id', node.id);
+        
+        nodeDiv.innerHTML = `
+            <div class="node-header">[${node.id}]</div>
+            <div class="node-content">${this.escapeHtml(node.text)}</div>
+            <div class="node-options">
+                ${node.options.map((option, index) => `
+                    <div class="option ${this.selectedOption === option.id ? 'selected' : ''}" 
+                         data-option-id="${option.id}">
+                         ${option.icon ? `<span class="option-icon"></span>` : ''}
+                         ${index + 1}) ${this.escapeHtml(option.text)}
+                         ${option.transition ? `→ [${option.transition}]` : ''}
+                    </div>
+                `).join('')}
             </div>
-        `).join('')}
-        <button onclick="addOption('${node.id}')">Добавить опцию</button>
-    `;
-    
-    panel.style.display = 'block';
-}
-
-function hidePropertiesPanel() {
-    document.getElementById('propertiesPanel').style.display = 'none';
-}
-
-function updateNodeId(oldId, newId) {
-    if (nodes[newId]) {
-        alert('Узел с таким ID уже существует!');
-        return;
-    }
-    
-    nodes[newId] = {...nodes[oldId], id: newId};
-    delete nodes[oldId];
-    
-    // Update edges
-    edges = edges.map(edge => ({
-        source: edge.source === oldId ? newId : edge.source,
-        target: edge.target === oldId ? newId : edge.target
-    }));
-    
-    // Update option transitions
-    Object.values(nodes).forEach(node => {
-        node.options.forEach(opt => {
-            if (opt.transition === oldId) {
-                opt.transition = newId;
-            }
-        });
-    });
-    
-    if (selectedNodeId === oldId) {
-        selectedNodeId = newId;
-    }
-    
-    saveToStorage();
-    renderCanvas();
-    validateGraph();
-}
-
-function updateNodeText(nodeId, text) {
-    nodes[nodeId].npcText = text;
-    saveToStorage();
-}
-
-// Option Management
-function addOption(nodeId) {
-    if (!nodes[nodeId].options) {
-        nodes[nodeId].options = [];
-    }
-    
-    nodes[nodeId].options.push({
-        text: '',
-        transition: ''
-    });
-    
-    saveToStorage();
-    renderCanvas();
-    if (selectedNodeId === nodeId) {
-        showPropertiesPanel(nodes[nodeId]);
-    }
-}
-
-function removeOption(nodeId, optionIndex) {
-    nodes[nodeId].options.splice(optionIndex, 1);
-    saveToStorage();
-    renderCanvas();
-    if (selectedNodeId === nodeId) {
-        showPropertiesPanel(nodes[nodeId]);
-    }
-}
-
-function updateOptionText(nodeId, optionIndex, text) {
-    nodes[nodeId].options[optionIndex].text = text;
-    saveToStorage();
-}
-
-function updateOptionTransition(nodeId, optionIndex, transition) {
-    nodes[nodeId].options[optionIndex].transition = transition;
-    
-    // Update edges
-    edges = edges.filter(edge => !(edge.source === nodeId));
-    
-    if (transition) {
-        edges.push({
-            source: nodeId,
-            target: transition
-        });
-    }
-    
-    saveToStorage();
-    renderConnections();
-    validateGraph();
-}
-
-// Import/Export
-function handleFileImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const parsed = parseCfgFile(e.target.result);
-            nodes = parsed.nodes;
-            edges = parsed.edges;
-            nextNodeId = Math.max(...Object.keys(nodes).map(id => parseInt(id.replace('node_', '')) || 0)) + 1;
-            
-            saveToStorage();
-            renderCanvas();
-            validateGraph();
-            alert('Файл успешно импортирован!');
-        } catch (error) {
-            alert('Ошибка при импорте файла: ' + error.message);
-        }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    e.target.value = '';
-}
-
-function exportCfg() {
-    const cfgContent = generateCfg();
-    const blob = new Blob([cfgContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'dialogue.cfg';
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-function parseCfgFile(content) {
-    const nodes = {};
-    const edges = [];
-    const lines = content.split('\n');
-    
-    let currentNode = null;
-    
-    lines.forEach(line => {
-        line = line.trim();
+        `;
         
-        // Новый узел
-        if (line.startsWith('[') && line.endsWith(']')) {
-            if (currentNode) {
-                nodes[currentNode.id] = currentNode;
-            }
-            const nodeId = line.slice(1, -1);
-            currentNode = {
-                id: nodeId,
-                npcText: '',
-                options: [],
-                x: Math.random() * 1000,
-                y: Math.random() * 600
-            };
-        }
-        // Текст NPC (первая не-опция строка после заголовка узла)
-        else if (currentNode && !line.startsWith('Text:') && currentNode.npcText === '' && line !== '') {
-            currentNode.npcText = line;
-        }
-        // Опция игрока
-        else if (line.startsWith('Text:')) {
-            const option = parseOptionLine(line);
-            currentNode.options.push(option);
-            
-            if (option.transition) {
-                edges.push({
-                    source: currentNode.id,
-                    target: option.transition
-                });
-            }
-        }
-    });
-    
-    if (currentNode) {
-        nodes[currentNode.id] = currentNode;
+        // Обработчики событий для узла
+        this.addNodeEventListeners(nodeDiv, node);
+        return nodeDiv;
     }
-    
-    return { nodes, edges };
-}
 
-function parseOptionLine(line) {
-    const parts = line.split('|').map(part => part.trim());
-    const option = { text: '', transition: '' };
-    
-    parts.forEach(part => {
-        if (part.startsWith('Text:')) {
-            option.text = part.replace('Text:', '').trim();
-        }
-        else if (part.startsWith('Transition:')) {
-            option.transition = part.replace('Transition:', '').trim();
-        }
-    });
-    
-    return option;
-}
-
-function generateCfg() {
-    let cfgContent = '';
-    
-    Object.values(nodes).forEach(node => {
-        cfgContent += `[${node.id}]\n`;
-        cfgContent += `${node.npcText}\n`;
-        
-        node.options.forEach(option => {
-            let line = `Text: ${option.text}`;
-            
-            if (option.transition) {
-                line += ` | Transition: ${option.transition}`;
-            }
-            
-            cfgContent += `${line}\n`;
-        });
-        
-        cfgContent += '\n';
-    });
-    
-    return cfgContent;
-}
-
-// Validation
-function validateGraph() {
-    const errors = [];
-    const nodeIds = new Set(Object.keys(nodes));
-    
-    // Check for transitions to non-existent nodes
-    edges.forEach(edge => {
-        if (!nodeIds.has(edge.target)) {
-            errors.push(`Переход ведёт на несуществующий узел: ${edge.target}`);
-        }
-    });
-    
-    // Check for empty NPC text
-    Object.values(nodes).forEach(node => {
-        if (!node.npcText.trim()) {
-            errors.push(`Узел ${node.id}: отсутствует текст NPC`);
-        }
-    });
-    
-    // Check for cycles
-    const cycles = findCycles();
-    cycles.forEach(cycle => {
-        errors.push(`Обнаружен цикл: ${cycle.join(' → ')}`);
-    });
-    
-    displayValidationErrors(errors);
-    return errors.length === 0;
-}
-
-function findCycles() {
-    const graph = {};
-    Object.keys(nodes).forEach(id => graph[id] = []);
-    edges.forEach(edge => graph[edge.source].push(edge.target));
-    
-    const cycles = [];
-    const visited = {};
-    const recursionStack = {};
-    
-    function dfs(node, path) {
-        if (recursionStack[node]) {
-            const cycleStart = path.indexOf(node);
-            if (cycleStart !== -1) {
-                cycles.push(path.slice(cycleStart));
-            }
-            return;
-        }
-        if (visited[node]) return;
-        
-        visited[node] = true;
-        recursionStack[node] = true;
-        
-        graph[node].forEach(neighbor => {
-            dfs(neighbor, [...path, node]);
-        });
-        
-        recursionStack[node] = false;
-    }
-    
-    Object.keys(nodes).forEach(id => {
-        if (!visited[id]) dfs(id, []);
-    });
-    
-    return cycles;
-}
-
-function displayValidationErrors(errors) {
-    const errorsDiv = document.getElementById('validationErrors');
-    
-    if (errors.length === 0) {
-        errorsDiv.innerHTML = '<div style="color: #4a7c59;">✓ Ошибок нет</div>';
-    } else {
-        errorsDiv.innerHTML = errors.map(error => 
-            `<div>⚠ ${error}</div>`
-        ).join('');
-    }
-}
-
-// Preview System
-function togglePreview() {
-    const modal = document.getElementById('previewModal');
-    
-    if (modal.style.display === 'none') {
-        const startNode = Object.values(nodes)[0];
-        if (!startNode) {
-            alert('Добавьте хотя бы один диалоговый узел!');
-            return;
-        }
-        
-        previewHistory = [];
-        showPreviewNode(startNode);
-        modal.style.display = 'flex';
-    } else {
-        modal.style.display = 'none';
-    }
-}
-
-function showPreviewNode(node) {
-    document.getElementById('previewNpcText').textContent = node.npcText;
-    
-    const optionsDiv = document.getElementById('previewOptions');
-    optionsDiv.innerHTML = '';
-    
-    node.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.className = 'option-btn';
-        button.textContent = option.text || `Опция ${index + 1}`;
-        button.onclick = () => handlePreviewOption(option);
-        optionsDiv.appendChild(button);
-    });
-    
-    document.getElementById('previewBackBtn').style.display = 
-        previewHistory.length > 0 ? 'block' : 'none';
-}
-
-function handlePreviewOption(option) {
-    previewHistory.push(option);
-    
-    if (option.transition && nodes[option.transition]) {
-        showPreviewNode(nodes[option.transition]);
-    } else {
-        // End of dialogue
-        togglePreview();
-    }
-}
-
-function previewGoBack() {
-    if (previewHistory.length > 0) {
-        previewHistory.pop();
-        const previousOption = previewHistory[previewHistory.length - 1];
-        
-        if (previousOption && previousOption.transition) {
-            showPreviewNode(nodes[previousOption.transition]);
-        } else {
-            // Back to start
-            const startNode = Object.values(nodes)[0];
-            showPreviewNode(startNode);
-        }
-    }
-}
-
-// Search
-function handleSearch() {
-    searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    renderCanvas();
-    
-    if (searchTerm) {
-        highlightSearchResults();
-    }
-}
-
-function highlightSearchResults() {
-    Object.values(nodes).forEach(node => {
-        const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
-        if (nodeElement) {
-            const matches = 
-                node.id.toLowerCase().includes(searchTerm) ||
-                node.npcText.toLowerCase().includes(searchTerm) ||
-                node.options.some(opt => opt.text.toLowerCase().includes(searchTerm));
-            
-            if (matches) {
-                nodeElement.classList.add('highlighted');
+    addNodeEventListeners(nodeElement, node) {
+        // Выбор узла
+        nodeElement.addEventListener('click', (e) => {
+            if (e.target.classList.contains('option')) {
+                const optionId = e.target.getAttribute('data-option-id');
+                this.selectOption(node.id, optionId);
             } else {
-                nodeElement.classList.remove('highlighted');
+                this.selectNode(node.id);
+            }
+            e.stopPropagation();
+        });
+
+        // Перетаскивание узла
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        nodeElement.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('option')) return;
+            
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = node.x;
+            initialY = node.y;
+            
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            
+            node.x = initialX + dx;
+            node.y = initialY + dy;
+            
+            this.renderNodes();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
+
+    drawConnection(fromNode, option) {
+        const toNode = this.nodes.get(option.transition);
+        if (!toNode) return;
+        
+        const svg = document.getElementById('connectionLayer');
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        
+        // Вычисляем позиции соединений (упрощенно)
+        const fromX = fromNode.x + 200;
+        const fromY = fromNode.y + 100;
+        const toX = toNode.x;
+        const toY = toNode.y + 50;
+        
+        line.setAttribute('x1', fromX);
+        line.setAttribute('y1', fromY);
+        line.setAttribute('x2', toX);
+        line.setAttribute('y2', toY);
+        line.setAttribute('stroke', '#3498db');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('marker-end', 'url(#arrowhead)');
+        
+        svg.appendChild(line);
+    }
+
+    selectNode(nodeId) {
+        this.selectedNode = nodeId;
+        this.selectedOption = null;
+        this.showNodeProperties();
+        this.renderNodes();
+    }
+
+    selectOption(nodeId, optionId) {
+        this.selectedNode = nodeId;
+        this.selectedOption = optionId;
+        this.showOptionProperties();
+        this.renderNodes();
+    }
+
+    showNodeProperties() {
+        document.getElementById('nodeProperties').style.display = 'block';
+        document.getElementById('optionProperties').style.display = 'none';
+        
+        const node = this.nodes.get(this.selectedNode);
+        if (!node) return;
+        
+        document.getElementById('nodeId').value = node.id;
+        document.getElementById('nodeText').value = node.text;
+    }
+
+    showOptionProperties() {
+        document.getElementById('nodeProperties').style.display = 'none';
+        document.getElementById('optionProperties').style.display = 'block';
+        
+        const node = this.nodes.get(this.selectedNode);
+        if (!node || !this.selectedOption) return;
+        
+        const option = node.options.find(opt => opt.id === this.selectedOption);
+        if (!option) return;
+        
+        document.getElementById('optionText').value = option.text;
+        document.getElementById('optionTransition').value = option.transition;
+        document.getElementById('optionIcon').value = option.icon;
+        document.getElementById('optionColor').value = option.color || '#ffffff';
+        
+        this.renderConditionsList(option.conditions);
+        this.renderCommandsList(option.commands);
+    }
+
+    updateNodeProperty(property, value) {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node) return;
+        
+        if (property === 'id') {
+            // Проверяем уникальность ID
+            if (value && value !== node.id && !this.nodes.has(value)) {
+                this.nodes.delete(node.id);
+                node.id = value;
+                this.nodes.set(value, node);
+                this.selectedNode = value;
+            }
+        } else {
+            node[property] = value;
+        }
+        
+        this.renderNodes();
+        this.updateTransitionsList();
+    }
+
+    updateOptionProperty(property, value) {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node || !this.selectedOption) return;
+        
+        const option = node.options.find(opt => opt.id === this.selectedOption);
+        if (!option) return;
+        
+        option[property] = value;
+        this.renderNodes();
+    }
+
+    updateTransitionsList() {
+        const select = document.getElementById('optionTransition');
+        select.innerHTML = '<option value="">-- Нет --</option>';
+        
+        this.nodes.forEach((node, nodeId) => {
+            if (nodeId !== this.selectedNode) {
+                const option = document.createElement('option');
+                option.value = nodeId;
+                option.textContent = nodeId;
+                select.appendChild(option);
+            }
+        });
+    }
+
+    showConditionModal() {
+        document.getElementById('conditionModal').style.display = 'block';
+        this.updateConditionParams();
+    }
+
+    showCommandModal() {
+        document.getElementById('commandModal').style.display = 'block';
+        this.updateCommandParams();
+    }
+
+    updateConditionParams() {
+        const type = document.getElementById('conditionType').value;
+        const paramsContainer = document.getElementById('conditionParams');
+        paramsContainer.innerHTML = '';
+        
+        // Добавляем поля для параметров в зависимости от типа условия
+        const paramTemplates = {
+            'HasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
+            'NotHasItem': ['ItemPrefab', 'Amount', 'ItemLevel'],
+            'SkillMore': ['SkillName', 'MinLevel'],
+            'QuestFinished': ['QuestName']
+        };
+        
+        const params = paramTemplates[type] || [];
+        params.forEach((paramName, index) => {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `
+                <label>${paramName}:</label>
+                <input type="text" class="form-control condition-param" 
+                       data-param-index="${index}" placeholder="${paramName}">
+            `;
+            paramsContainer.appendChild(div);
+        });
+    }
+
+    updateCommandParams() {
+        const type = document.getElementById('commandType').value;
+        const paramsContainer = document.getElementById('commandParams');
+        paramsContainer.innerHTML = '';
+        
+        const paramTemplates = {
+            'GiveItem': ['ItemPrefab', 'Amount', 'Level'],
+            'RemoveItem': ['ItemPrefab', 'Amount'],
+            'GiveQuest': ['QuestName'],
+            'FinishQuest': ['QuestID']
+        };
+        
+        const params = paramTemplates[type] || [];
+        params.forEach((paramName, index) => {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `
+                <label>${paramName}:</label>
+                <input type="text" class="form-control command-param" 
+                       data-param-index="${index}" placeholder="${paramName}">
+            `;
+            paramsContainer.appendChild(div);
+        });
+    }
+
+    saveCondition() {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node || !this.selectedOption) return;
+        
+        const option = node.options.find(opt => opt.id === this.selectedOption);
+        if (!option) return;
+        
+        const type = document.getElementById('conditionType').value;
+        const paramInputs = document.querySelectorAll('.condition-param');
+        const params = Array.from(paramInputs).map(input => input.value).filter(val => val);
+        
+        option.conditions.push({ type, params });
+        this.renderConditionsList(option.conditions);
+        document.getElementById('conditionModal').style.display = 'none';
+    }
+
+    saveCommand() {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node || !this.selectedOption) return;
+        
+        const option = node.options.find(opt => opt.id === this.selectedOption);
+        if (!option) return;
+        
+        const type = document.getElementById('commandType').value;
+        const paramInputs = document.querySelectorAll('.command-param');
+        const params = Array.from(paramInputs).map(input => input.value).filter(val => val);
+        
+        option.commands.push({ type, params });
+        this.renderCommandsList(option.commands);
+        document.getElementById('commandModal').style.display = 'none';
+    }
+
+    renderConditionsList(conditions) {
+        const container = document.getElementById('conditionsList');
+        container.innerHTML = '';
+        
+        conditions.forEach((condition, index) => {
+            const div = document.createElement('div');
+            div.className = 'condition-item';
+            div.innerHTML = `
+                <span>${condition.type}(${condition.params.join(', ')})</span>
+                <button onclick="editor.removeCondition(${index})">×</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    renderCommandsList(commands) {
+        const container = document.getElementById('commandsList');
+        container.innerHTML = '';
+        
+        commands.forEach((command, index) => {
+            const div = document.createElement('div');
+            div.className = 'command-item';
+            div.innerHTML = `
+                <span>${command.type}(${command.params.join(', ')})</span>
+                <button onclick="editor.removeCommand(${index})">×</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    removeCondition(index) {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node || !this.selectedOption) return;
+        
+        const option = node.options.find(opt => opt.id === this.selectedOption);
+        if (!option) return;
+        
+        option.conditions.splice(index, 1);
+        this.renderConditionsList(option.conditions);
+    }
+
+    removeCommand(index) {
+        const node = this.nodes.get(this.selectedNode);
+        if (!node || !this.selectedOption) return;
+        
+        const option = node.options.find(opt => opt.id === this.selectedOption);
+        if (!option) return;
+        
+        option.commands.splice(index, 1);
+        this.renderCommandsList(option.commands);
+    }
+
+    showPreview() {
+        const modal = document.getElementById('previewModal');
+        const content = document.getElementById('previewContent');
+        
+        if (!this.selectedNode) {
+            alert('Выберите диалог для предпросмотра');
+            return;
+        }
+        
+        const startNode = this.nodes.get(this.selectedNode);
+        content.innerHTML = this.generatePreview(startNode);
+        modal.style.display = 'block';
+    }
+
+    generatePreview(node, depth = 0) {
+        if (depth > 10) return '<div class="preview-error">Слишком глубокая вложенность</div>';
+        
+        let html = `
+            <div class="preview-profile">[${node.id}]</div>
+            <div class="preview-npc-text">${this.escapeHtml(node.text)}</div>
+            <div class="preview-options">
+        `;
+        
+        node.options.forEach((option, index) => {
+            const colorStyle = option.color ? `style="color: ${option.color}"` : '';
+            html += `
+                <div class="preview-option">
+                    ${option.icon ? `<div class="option-icon" title="${option.icon}"></div>` : ''}
+                    <span class="option-number">${index + 1})</span>
+                    <span class="option-text" ${colorStyle}>${this.escapeHtml(option.text)}</span>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        return html;
+    }
+
+    exportCfg() {
+        let cfgContent = '';
+        
+        this.nodes.forEach(node => {
+            cfgContent += `[${node.id}]\n`;
+            cfgContent += `${node.text}\n`;
+            
+            node.options.forEach(option => {
+                let line = `Text: ${option.text}`;
+                
+                if (option.transition) {
+                    line += ` | Transition: ${option.transition}`;
+                }
+                
+                option.commands.forEach(cmd => {
+                    line += ` | Command: ${cmd.type}`;
+                    cmd.params.forEach(param => {
+                        line += `, ${param}`;
+                    });
+                });
+                
+                option.conditions.forEach(condition => {
+                    line += ` | Condition: ${condition.type}`;
+                    condition.params.forEach(param => {
+                        line += `, ${param}`;
+                    });
+                });
+                
+                if (option.icon) {
+                    line += ` | Icon: ${option.icon}`;
+                }
+                
+                if (option.color && option.color !== '#ffffff') {
+                    const rgb = this.hexToRgb(option.color);
+                    if (rgb) {
+                        line += ` | Color: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
+                    }
+                }
+                
+                cfgContent += `${line}\n`;
+            });
+            
+            cfgContent += '\n';
+        });
+        
+        this.downloadFile('dialogue.cfg', cfgContent);
+    }
+
+    importCfg() {
+        document.getElementById('fileInput').click();
+        document.getElementById('fileInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                this.parseCfgFile(event.target.result);
+            };
+            reader.readAsText(file);
+        };
+    }
+
+    parseCfgFile(content) {
+        this.nodes.clear();
+        const lines = content.split('\n');
+        let currentNode = null;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            if (line.startsWith('[') && line.endsWith(']')) {
+                // Новый узел
+                const nodeId = line.slice(1, -1);
+                currentNode = this.addNode(nodeId, Math.random() * 500, Math.random() * 300);
+                i++; // Переход к следующей строке (текст NPC)
+                if (i < lines.length) {
+                    currentNode.text = lines[i].trim();
+                }
+            } else if (line.startsWith('Text:')) {
+                // Опция игрока
+                this.parseOptionLine(currentNode, line);
             }
         }
-    });
-}
+        
+        this.renderNodes();
+        this.updateTransitionsList();
+    }
 
-// Utility Functions
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+    parseOptionLine(node, line) {
+        if (!node) return;
+        
+        const parts = line.split('|').map(part => part.trim());
+        const textPart = parts.find(part => part.startsWith('Text:'));
+        
+        if (!textPart) return;
+        
+        const option = this.addOptionToNode(node.id, textPart.substring(5).trim());
+        
+        parts.forEach(part => {
+            if (part.startsWith('Transition:')) {
+                option.transition = part.substring(11).trim();
+            } else if (part.startsWith('Icon:')) {
+                option.icon = part.substring(5).trim();
+            } else if (part.startsWith('Color:')) {
+                option.color = part.substring(6).trim();
+            } else if (part.startsWith('Condition:')) {
+                this.parseCondition(option, part.substring(10).trim());
+            } else if (part.startsWith('Command:')) {
+                this.parseCommand(option, part.substring(8).trim());
+            }
+        });
+    }
 
-function saveToStorage() {
-    localStorage.setItem('valheimDialogueEditor', JSON.stringify({
-        nodes: nodes,
-        edges: edges,
-        nextNodeId: nextNodeId
-    }));
-}
+    parseCondition(option, conditionStr) {
+        const parts = conditionStr.split(',').map(part => part.trim());
+        const type = parts[0];
+        const params = parts.slice(1);
+        
+        option.conditions.push({ type, params });
+    }
 
-function loadFromStorage() {
-    const saved = localStorage.getItem('valheimDialogueEditor');
-    if (saved) {
-        const data = JSON.parse(saved);
-        nodes = data.nodes || {};
-        edges = data.edges || [];
-        nextNodeId = data.nextNodeId || 1;
+    parseCommand(option, commandStr) {
+        const parts = commandStr.split(',').map(part => part.trim());
+        const type = parts[0];
+        const params = parts.slice(1);
+        
+        option.commands.push({ type, params });
+    }
+
+    validateDialogue() {
+        const errors = [];
+        
+        this.nodes.forEach((node, nodeId) => {
+            // Проверяем уникальность ID
+            if (!nodeId) {
+                errors.push(`Узел без ID`);
+            }
+            
+            // Проверяем текст NPC
+            if (!node.text || node.text.trim() === '') {
+                errors.push(`Узел "${nodeId}": отсутствует текст NPC`);
+            }
+            
+            // Проверяем опции
+            node.options.forEach((option, index) => {
+                if (!option.text || option.text.trim() === '') {
+                    errors.push(`Узел "${nodeId}", опция ${index + 1}: отсутствует текст`);
+                }
+                
+                if (option.transition && !this.nodes.has(option.transition)) {
+                    errors.push(`Узел "${nodeId}", опция ${index + 1}: переход ведет к несуществующему узлу "${option.transition}"`);
+                }
+            });
+        });
+        
+        if (errors.length === 0) {
+            alert('Диалог проверен успешно! Ошибок не найдено.');
+        } else {
+            alert('Найдены ошибки:\n' + errors.join('\n'));
+        }
+    }
+
+    searchDialogue(query) {
+        if (!query.trim()) {
+            this.renderNodes();
+            return;
+        }
+        
+        const lowerQuery = query.toLowerCase();
+        this.nodes.forEach((node, nodeId) => {
+            const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
+            if (!nodeElement) return;
+            
+            const matches = 
+                nodeId.toLowerCase().includes(lowerQuery) ||
+                node.text.toLowerCase().includes(lowerQuery) ||
+                node.options.some(opt => opt.text.toLowerCase().includes(lowerQuery));
+            
+            nodeElement.style.opacity = matches ? '1' : '0.3';
+        });
+    }
+
+    deleteSelected() {
+        if (this.selectedOption) {
+            const node = this.nodes.get(this.selectedNode);
+            if (node) {
+                node.options = node.options.filter(opt => opt.id !== this.selectedOption);
+                this.selectedOption = null;
+                this.renderNodes();
+                document.getElementById('optionProperties').style.display = 'none';
+            }
+        } else if (this.selectedNode) {
+            // Удаляем все ссылки на этот узел
+            this.nodes.forEach(otherNode => {
+                otherNode.options.forEach(option => {
+                    if (option.transition === this.selectedNode) {
+                        option.transition = '';
+                    }
+                });
+            });
+            
+            this.nodes.delete(this.selectedNode);
+            this.selectedNode = null;
+            this.renderNodes();
+            document.getElementById('nodeProperties').style.display = 'none';
+        }
+    }
+
+    // Вспомогательные методы
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    downloadFile(filename, content) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Методы для перетаскивания холста
+    startCanvasDrag(e) {
+        if (e.target.closest('.dialogue-node')) return;
+        this.isCanvasDragging = true;
+        this.canvasStartPos = { x: e.clientX - this.canvasOffset.x, y: e.clientY - this.canvasOffset.y };
+        document.querySelector('.canvas-container').style.cursor = 'grabbing';
+    }
+
+    canvasDrag(e) {
+        if (!this.isCanvasDragging) return;
+        this.canvasOffset.x = e.clientX - this.canvasStartPos.x;
+        this.canvasOffset.y = e.clientY - this.canvasStartPos.y;
+        this.applyCanvasTransform();
+    }
+
+    stopCanvasDrag() {
+        this.isCanvasDragging = false;
+        document.querySelector('.canvas-container').style.cursor = 'grab';
+    }
+
+    applyCanvasTransform() {
+        const container = document.querySelector('.node-container');
+        container.style.transform = `translate(${this.canvasOffset.x}px, ${this.canvasOffset.y}px) scale(${this.currentZoom})`;
+    }
+
+    zoom(delta) {
+        this.currentZoom = Math.max(0.1, Math.min(3, this.currentZoom + delta));
+        this.applyCanvasTransform();
+    }
+
+    fitToScreen() {
+        this.currentZoom = 1;
+        this.canvasOffset = { x: 0, y: 0 };
+        this.applyCanvasTransform();
     }
 }
 
-// Create initial node if none exists
-if (Object.keys(nodes).length === 0) {
-    createDialogNode(100, 100, 'default', 'Welcome to the village!');
-}
+// Инициализация приложения
+let editor;
+document.addEventListener('DOMContentLoaded', () => {
+    editor = new DialogueEditor();
+    
+    // Добавляем обработчики для модальных окон условий и команд
+    document.getElementById('conditionType').addEventListener('change', () => editor.updateConditionParams());
+    document.getElementById('commandType').addEventListener('change', () => editor.updateCommandParams());
+});
