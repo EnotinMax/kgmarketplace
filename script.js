@@ -431,12 +431,12 @@ class DialogueEditor {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         
         // Начало стрелки из центра правой границы узла
-        const fromX = fromNode.x + 200;
+        const fromX = fromNode.x;
         const fromY = fromNode.y + (fromNode.collapsed ? 25 : 75);
         
         // Конец стрелки в центр левой границы целевого узла
         const toX = toNode.x;
-        const toY = toNode.y + (toNode.collapsed ? 25 : 50);
+        const toY = toNode.y + (toNode.collapsed ? 25 : 75);
         
         line.setAttribute('x1', fromX);
         line.setAttribute('y1', fromY);
