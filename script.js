@@ -436,7 +436,7 @@ class DialogueEditor {
         
         // Конец стрелки в центр левой границы целевого узла
         const toX = toNode.x;
-        const toY = toNode.y + (toNode.collapsed ? 25 : 75);
+        const toY = toNode.y + (toNode.collapsed ? 21px);
         
         line.setAttribute('x1', fromX);
         line.setAttribute('y1', fromY);
