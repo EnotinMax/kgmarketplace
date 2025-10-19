@@ -1271,7 +1271,7 @@ class DialogueEditor {
         if (!text) return '';
         
         // Заменяем \n на <br>
-        let processed = text.replace(/\n/g, '<br>');
+        let processed = text.replace(\n, '<br>');
         
         // Обрабатываем теги <color>
         processed = processed.replace(/<color=([^>]+)>([^<]*)<\/color>/g, 
