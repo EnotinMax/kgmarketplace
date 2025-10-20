@@ -1,0 +1,844 @@
+/* Основные стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: #ecf0f1;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Заголовок */
+header {
+    background: rgba(44, 62, 80, 0.95);
+    padding: 15px 20px;
+    border-bottom: 2px solid #3498db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+header h1 {
+    color: #3498db;
+    font-size: 24px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#searchInput {
+    padding: 8px 12px;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    background: #34495e;
+    color: #ecf0f1;
+    width: 200px;
+}
+
+/* Кнопки */
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.play-btn {
+    background: #27ae60;
+    font-size: 16px;
+    padding: 8px 12px;
+}
+
+.play-btn:hover {
+    background: #229954;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #95a5a6;
+}
+
+.btn-small:hover {
+    background: #7f8c8d;
+}
+
+/* Основной контент */
+main {
+    display: flex;
+    height: calc(100vh - 70px);
+}
+
+.workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #2c3e50;
+}
+
+/* Панель инструментов */
+.toolbar {
+    padding: 10px;
+    background: #34495e;
+    border-bottom: 1px solid #7f8c8d;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.tool-separator {
+    width: 1px;
+    height: 20px;
+    background: #7f8c8d;
+    margin: 0 10px;
+}
+
+/* Холст */
+.canvas-container {
+    flex: 1;
+    position: relative;
+    background: 
+        linear-gradient(rgba(52, 73, 94, 0.8), rgba(52, 73, 94, 0.8)),
+        repeating-linear-gradient(0deg, transparent, transparent 19px, #3a506b 20px),
+        repeating-linear-gradient(90deg, transparent, transparent 19px, #3a506b 20px);
+    overflow: hidden;
+    cursor: grab;
+}
+
+.canvas-container:active {
+    cursor: grabbing;
+}
+
+#connectionLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.node-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+    transition: transform 0.2s ease;
+}
+
+/* Узлы диалогов */
+.dialogue-node {
+    position: absolute;
+    min-width: 200px;
+    max-width: 300px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: 2px solid #1a5276;
+    border-radius: 8px;
+    cursor: move;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.dialogue-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.dialogue-node.selected {
+    border-color: #f39c12;
+    box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.3);
+}
+
+.dialogue-node.collapsed {
+    min-width: 150px;
+    max-width: 200px;
+    height: auto;
+}
+
+.node-header {
+    font-weight: bold;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    color: #f1c40f;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    background: rgba(0,0,0,0.2);
+}
+
+.collapse-btn {
+    background: none;
+    border: none;
+    color: #f1c40f;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: background 0.2s;
+    margin-right: 8px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.collapse-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.node-header-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.node-content {
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.dialogue-node.collapsed .node-content {
+    display: none;
+}
+
+.node-text {
+    margin-bottom: 10px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-line;
+}
+
+.option {
+    background: rgba(52, 152, 219, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 8px;
+    margin: 5px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.option:hover {
+    background: rgba(52, 152, 219, 0.5);
+    transform: translateX(5px);
+}
+
+.option.selected {
+    background: rgba(243, 156, 18, 0.3);
+    border-color: #f39c12;
+}
+
+.option-connection-point {
+    position: absolute;
+    right: -6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3498db;
+    border: 2px solid white;
+    cursor: crosshair;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.option:hover .option-connection-point {
+    opacity: 1;
+}
+
+.option-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    background: #f1c40f;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.option-text {
+    flex: 1;
+    font-size: 14px;
+    white-space: pre-line;
+}
+
+.option-transition {
+    font-size: 12px;
+    color: #bdc3c7;
+    margin-left: 8px;
+    font-style: italic;
+}
+
+/* Панель свойств */
+.properties-panel {
+    width: 350px;
+    background: #34495e;
+    border-left: 2px solid #3498db;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.properties-section h3 {
+    color: #3498db;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #7f8c8d;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #bdc3c7;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Секция опций в панели узла */
+.node-options-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #7f8c8d;
+}
+
+.node-options-section h4 {
+    color: #f39c12;
+    margin-bottom: 10px;
+}
+
+.options-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.option-list-item {
+    background: #2c3e50;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.option-list-item:hover {
+    background: #3a506b;
+}
+
+.option-list-item.selected {
+    border-left-color: #f39c12;
+    background: #3a506b;
+}
+
+.option-list-text {
+    flex: 1;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.option-list-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.option-list-btn {
+    padding: 2px 6px;
+    font-size: 10px;
+    background: #7f8c8d;
+}
+
+.option-list-btn:hover {
+    background: #95a5a6;
+}
+
+.conditions-section, .commands-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #7f8c8d;
+}
+
+.conditions-section h4, .commands-section h4 {
+    color: #f39c12;
+    margin-bottom: 10px;
+}
+
+.condition-item, .command-item {
+    background: #2c3e50;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    border-left: 3px solid #e74c3c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.command-item {
+    border-left-color: #27ae60;
+}
+
+.condition-item span, .command-item span {
+    flex: 1;
+    font-size: 12px;
+}
+
+.condition-item button, .command-item button {
+    padding: 2px 6px;
+    font-size: 10px;
+    background: #e74c3c;
+}
+
+.command-item button {
+    background: #c0392b;
+}
+
+/* Модальные окна */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 2px solid #3498db;
+}
+
+.preview-modal {
+    width: 700px;
+    max-width: 95%;
+}
+
+.quests-modal {
+    width: 900px;
+    max-width: 95%;
+    height: 80vh;
+}
+
+.modal-header {
+    padding: 20px;
+    background: #2c3e50;
+    border-bottom: 1px solid #3498db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+    color: #3498db;
+    margin: 0;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #e74c3c;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Контейнер для редактора квестов */
+.quests-container {
+    display: flex;
+    height: calc(80vh - 60px);
+}
+
+.quests-sidebar {
+    width: 250px;
+    background: #2c3e50;
+    border-right: 1px solid #7f8c8d;
+    display: flex;
+    flex-direction: column;
+}
+
+.quests-header {
+    padding: 15px;
+    border-bottom: 1px solid #7f8c8d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quests-header h3 {
+    color: #3498db;
+    margin: 0;
+}
+
+.quests-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.quest-item {
+    background: #34495e;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid #3498db;
+}
+
+.quest-item:hover {
+    background: #3a506b;
+}
+
+.quest-item.selected {
+    border-left-color: #f39c12;
+    background: #3a506b;
+}
+
+.quest-item-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.quest-item-id {
+    font-size: 12px;
+    color: #bdc3c7;
+}
+
+.quest-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.quest-editor-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.no-quest-selected {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.quest-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.quest-form-section {
+    background: #2c3e50;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+}
+
+.quest-form-section h4 {
+    color: #f39c12;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #7f8c8d;
+}
+
+.quest-targets, .quest-rewards, .quest-requirements {
+    margin-top: 10px;
+}
+
+.quest-target-item, .quest-reward-item, .quest-requirement-item {
+    background: #34495e;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quest-target-item {
+    border-left: 3px solid #e74c3c;
+}
+
+.quest-reward-item {
+    border-left: 3px solid #27ae60;
+}
+
+.quest-requirement-item {
+    border-left: 3px solid #f39c12;
+}
+
+.quest-target-item span, .quest-reward-item span, .quest-requirement-item span {
+    flex: 1;
+    font-size: 12px;
+}
+
+.quest-target-item button, .quest-reward-item button, .quest-requirement-item button {
+    padding: 2px 6px;
+    font-size: 10px;
+    background: #e74c3c;
+}
+
+.quest-reward-item button {
+    background: #c0392b;
+}
+
+.quest-requirement-item button {
+    background: #d35400;
+}
+
+/* Предпросмотр в стиле Valheim */
+.preview-content {
+    background: #1a1a1a;
+    border: 3px solid #8b7355;
+    border-radius: 10px;
+    padding: 25px;
+    color: #e8d8a3;
+    font-family: 'MedievalSharp', cursive;
+    text-shadow: 1px 1px 2px #000;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.preview-profile {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #f1c40f;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px;
+    border-bottom: 1px solid #8b7355;
+}
+
+.preview-npc-text {
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(139, 115, 85, 0.2);
+    border-radius: 5px;
+    border: 1px solid #8b7355;
+    white-space: pre-line;
+}
+
+.preview-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.preview-option {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(139, 115, 85, 0.3);
+    border: 1px solid #8b7355;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.preview-option:hover {
+    background: rgba(139, 115, 85, 0.5);
+    transform: translateX(5px);
+}
+
+.preview-option-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    background: #f1c40f;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.preview-option-number {
+    color: #f39c12;
+    margin-right: 8px;
+    font-weight: bold;
+    min-width: 20px;
+}
+
+.preview-option-text {
+    flex: 1;
+}
+
+.preview-option-transition {
+    font-size: 11px;
+    color: #d4af37;
+    margin-left: 10px;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .properties-panel {
+        width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        flex-direction: column;
+    }
+    
+    .properties-panel {
+        width: 100%;
+        height: 300px;
+        border-left: none;
+        border-top: 2px solid #3498db;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 2% auto;
+    }
+    
+    .preview-modal, .quests-modal {
+        width: 95%;
+    }
+    
+    .quests-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .quests-sidebar {
+        width: 100%;
+        height: 200px;
+        border-right: none;
+        border-bottom: 1px solid #7f8c8d;
+    }
+}
+
+/* Прокрутка */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2c3e50;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
+}
+
+/* Стили для цветного текста */
+.color-text {
+    display: inline;
+}
+
+.color-tag {
+    color: #f39c12;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Стили для точек соединения */
+.connection-point {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3498db;
+    border: 2px solid white;
+    cursor: crosshair;
+    z-index: 10;
+}
+
+.connection-point:hover {
+    background: #2980b9;
+    transform: scale(1.2);
+}
+
+/* Стили для временных соединений */
+.temp-connection {
+    stroke: #f39c12;
+    stroke-width: 2;
+    stroke-dasharray: 5,5;
+}
