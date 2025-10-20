@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Скальд v2.1</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>>Кузница Скальда v2.1</h1>
+        <h1>>Редактор диалогов и квестов для KGMarketplace</h1>
+        <h1>>by OdinSons </h1>
+        <div class="header-controls">
+            <input type="text" id="searchInput" placeholder="Поиск по диалогам...">
+            <button id="importDialogueBtn">Импорт cfg диалога</button>
+            <button id="importQuestBtn">Импорт cfg квеста</button>
+            <button id="questsBtn">Квесты</button>
+            <button id="exportBtn">Экспорт в cfg</button>
+            <button id="validateBtn">Проверить</button>
+            <button id="previewBtn" class="play-btn">▶</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="workspace">
+            <div class="toolbar">
+                <button id="addNodeBtn">+ Добавить диалог</button>
+                <button id="addOptionBtn">+ Добавить опцию</button>
+                <button id="deleteBtn">Удалить</button>
+                <div class="tool-separator"></div>
+                <button id="zoomInBtn">+</button>
+                <button id="zoomOutBtn">-</button>
+                <button id="fitToScreenBtn">По размеру</button>
+            </div>
+
+            <div class="canvas-container">
+                <svg id="connectionLayer">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3498db"/>
+                        </marker>
+                    </defs>
+                </svg>
+                <div id="nodeContainer" class="node-container"></div>
+            </div>
+        </div>
+
+        <div class="properties-panel">
+            <div id="nodeProperties" class="properties-section">
+                <h3>Диалог NPC</h3>
+                <div class="form-group">
+                    <label>ID профиля:</label>
+                    <input type="text" id="nodeId" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Текст NPC:</label>
+                    <textarea id="nodeText" class="form-control" rows="3" placeholder="Используем \n для переноса строки и теги &lt;color&gt;"></textarea>
+                </div>
+                
+                <div class="node-options-section">
+                    <h4>Опции диалога</h4>
+                    <div id="nodeOptionsList" class="options-list"></div>
+                    <button id="addNodeOptionBtn" class="btn-small">+ Добавить опцию</button>
+                </div>
+            </div>
+
+            <div id="optionProperties" class="properties-section" style="display: none;">
+                <h3>Опция игрока</h3>
+                <div class="form-group">
+                    <label>Текст:</label>
+                    <input type="text" id="optionText" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Тип перехода:</label>
+                    <select id="optionTransitionType" class="form-control">
+                        <option value="node">Узел диалога</option>
+                        <option value="quest">Квест</option>
+                        <option value="external">Внешний диалог</option>
+                    </select>
+                </div>
+                <div class="form-group" id="transitionNodeGroup">
+                    <label>Переход к узлу:</label>
+                    <select id="optionTransition" class="form-control">
+                        <option value="">-- Нет --</option>
+                    </select>
+                </div>
+                <div class="form-group" id="transitionQuestGroup" style="display: none;">
+                    <label>Переход к квесту:</label>
+                    <select id="optionTransitionQuest" class="form-control">
+                        <option value="">-- Нет --</option>
+                    </select>
+                </div>
+                <div class="form-group" id="transitionExternalGroup" style="display: none;">
+                    <label>Внешний диалог:</label>
+                    <input type="text" id="optionTransitionExternal" class="form-control" placeholder="config_name:node_id">
+                </div>
+                <div class="form-group">
+                    <label>Иконка:</label>
+                    <input type="text" id="optionIcon" class="form-control" placeholder="Hammer, SwordIron, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Цвет:</label>
+                    <input type="color" id="optionColor" class="form-control" value="#ffffff">
+                </div>
+
+                <div class="conditions-section">
+                    <h4>Условия</h4>
+                    <div id="conditionsList"></div>
+                    <button id="addConditionBtn" class="btn-small">+ Добавить условие</button>
+                </div>
+
+                <div class="commands-section">
+                    <h4>Команды</h4>
+                    <div id="commandsList"></div>
+                    <button id="addCommandBtn" class="btn-small">+ Добавить команду</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div id="previewModal" class="modal" style="display: none;">
+        <div class="modal-content preview-modal">
+            <div class="modal-header">
+                <h2>Предпросмотр диалога</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="previewContent" class="preview-content"></div>
+        </div>
+    </div>
+
+    <div id="questsModal" class="modal" style="display: none;">
+        <div class="modal-content quests-modal">
+            <div class="modal-header">
+                <h2>Редактор квестов</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="quests-container">
+                <div class="quests-sidebar">
+                    <div class="quests-header">
+                        <h3>Квесты</h3>
+                        <button id="addQuestBtn" class="btn-small">+ Новый квест</button>
+                    </div>
+                    <div id="questsList" class="quests-list"></div>
+                </div>
+                <div class="quest-editor">
+                    <div id="questEditor" class="quest-editor-content">
+                        <div class="no-quest-selected">
+                            <p>Выберите квест для редактирования</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытые inputs для импорта файлов -->
+    <input type="file" id="dialogueFileInput" accept=".cfg" style="display: none;">
+    <input type="file" id="questFileInput" accept=".cfg" style="display: none;">
+
+    <script src="diag.js"></script>
+    <script src="quest.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
